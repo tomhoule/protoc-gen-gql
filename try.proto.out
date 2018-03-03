@@ -1,1 +1,6 @@
-ToppingPizza
+// Describes a Pizza topping
+type Topping
+
+// A pizza, with toppings and stuff
+type Pizza
+

@@ -8,6 +8,7 @@ message Topping {
 
 // A pizza, with toppings and stuff
 message Pizza {
-    // How the pizza is usually called
-    string title = 1;
+    string title = 1; // How the pizza is usually called
+    // Where the pizza is from
+    string origin = 2;
 }

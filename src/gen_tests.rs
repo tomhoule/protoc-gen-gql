@@ -43,7 +43,7 @@ impl Project {
         assert_eq!(generated.len(), self.expected_results.len());
         for expected in self.expected_results.iter() {
             assert!(
-                generated.iter().any(|g| g.name == expected.name),
+                generated.iter().any(|g| g.name == expected.name && g.content == expected.content),
                 "Expected to find name:\n{:?}\n\ncontent:\n{:?}\n\nin:\n {:?}",
                 expected.name,
                 String::from_utf8(expected.content.clone()).unwrap(),
@@ -63,14 +63,17 @@ impl Project {
 fn it_works_for_basic_types() {
     let mut file = FileDescriptorProto::new();
     let mut messages = RepeatedField::new();
-    let mut msg_type = DescriptorProto::new();
-    msg_type.set_name("Pizza".into());
-    messages.push(msg_type);
+    let mut pizza = DescriptorProto::new();
+    pizza.set_name("Pizza".into());
+    let mut topping = DescriptorProto::new();
+    topping.set_name("Topping".into());
+    messages.push(pizza);
+    messages.push(topping);
     file.set_message_type(messages);
 
     Project::new()
         .source_file(file)
         .target_file("meh")
-        .expect("meh.out", "Pizza")
+        .expect("meh.out", "type Pizza\n\ntype Topping\n\n")
         .unwrap();
 }
