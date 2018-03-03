@@ -1,0 +1,7 @@
+[package]
+name = "protoc-gen-apollo"
+version = "0.1.0"
+authors = ["Tom Houlé <tom@tomhoule.com>"]
+
+[dependencies]
+protobuf = "*"

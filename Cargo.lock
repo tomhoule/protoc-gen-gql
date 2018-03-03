@@ -1,0 +1,14 @@
+[[package]]
+name = "protobuf"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "protoc-gen-apollo"
+version = "0.1.0"
+dependencies = [
+ "protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[metadata]
+"checksum protobuf 1.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "bec26e67194b7d991908145fdf21b7cae8b08423d96dcb9e860cd31f854b9506"

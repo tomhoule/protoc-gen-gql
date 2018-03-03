@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// Describes a Pizza topping
+message Topping {
+    string name = 1;
+    bool sweet = 2;
+}
+
+// A pizza, with toppings and stuff
+message Pizza {
+    // How the pizza is usually called
+    string title = 1;
+}
