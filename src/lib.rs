@@ -18,7 +18,7 @@ struct Field {
 }
 
 impl ::std::fmt::Display for Field {
-    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error>{
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         let comment = self.description.clone().unwrap_or("".to_string());
         for line in comment.lines() {
             write!(formatter, "  #{}\n", line)?;
@@ -34,13 +34,30 @@ struct ObjectType {
 }
 
 impl ::std::fmt::Display for ObjectType {
-    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error>{
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         let fields: String = self.fields.iter().map(|f| format!("{}", f)).collect();
         let comment = self.description.clone().unwrap_or("".to_string());
         for line in comment.lines() {
             write!(formatter, "#{}\n", line)?;
         }
         write!(formatter, "type {} {{\n{}}}", self.name, fields)
+    }
+}
+
+struct InputType {
+    pub name: String,
+    pub fields: Vec<Field>,
+    pub description: Option<String>,
+}
+
+impl ::std::fmt::Display for InputType {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        let fields: String = self.fields.iter().map(|f| format!("{}", f)).collect();
+        let comment = self.description.clone().unwrap_or("".to_string());
+        for line in comment.lines() {
+            write!(formatter, "#{}\n", line)?;
+        }
+        write!(formatter, "input {}Input {{\n{}}}", self.name, fields)
     }
 }
 
@@ -84,7 +101,11 @@ fn fields_to_gql(
                 })
                 .collect();
             Field {
-                description: if comment.is_empty() { None } else { Some(comment) },
+                description: if comment.is_empty() {
+                    None
+                } else {
+                    Some(comment)
+                },
                 name: f.get_name().to_string(),
                 type_: proto_field_type_to_gql_type(f.get_field_type()),
             }
@@ -97,20 +118,43 @@ fn message_type_to_gql(
     message_type_index: usize,
     source_info: &SourceCodeInfo,
 ) -> ObjectType {
-    let description = 
-        source_info
-            .get_location()
-            .iter()
-            .find(|loc| loc.get_path().iter().nth(1) == Some(&(message_type_index as i32)))
-            .and_then(|loc| {
-                let comment = loc.get_leading_comments();
-                if comment.is_empty() {
-                    None
-                } else {
-                    Some(comment.to_string())
-                }
-            });
+    let description = source_info
+        .get_location()
+        .iter()
+        .find(|loc| loc.get_path().iter().nth(1) == Some(&(message_type_index as i32)))
+        .and_then(|loc| {
+            let comment = loc.get_leading_comments();
+            if comment.is_empty() {
+                None
+            } else {
+                Some(comment.to_string())
+            }
+        });
     ObjectType {
+        name: message.get_name().to_string(),
+        fields: fields_to_gql(message.get_field(), message_type_index, source_info),
+        description,
+    }
+}
+
+fn message_type_to_input_type(
+    message: &DescriptorProto,
+    message_type_index: usize,
+    source_info: &SourceCodeInfo,
+) -> InputType {
+    let description = source_info
+        .get_location()
+        .iter()
+        .find(|loc| loc.get_path().iter().nth(1) == Some(&(message_type_index as i32)))
+        .and_then(|loc| {
+            let comment = loc.get_leading_comments();
+            if comment.is_empty() {
+                None
+            } else {
+                Some(comment.to_string())
+            }
+        });
+    InputType {
         name: message.get_name().to_string(),
         fields: fields_to_gql(message.get_field(), message_type_index, source_info),
         description,
@@ -139,11 +183,24 @@ pub fn gen(
         let mut content: Vec<u8> = Vec::new();
         for (idx, message_type) in file_descriptors[0].get_message_type().iter().enumerate() {
             content.extend(
-                format!("\n\n{}", message_type_to_gql(
-                    message_type,
-                    idx,
-                    file_descriptors[0].get_source_code_info(),
-                )).into_bytes(),
+                format!(
+                    "\n\n{}",
+                    message_type_to_gql(
+                        message_type,
+                        idx,
+                        file_descriptors[0].get_source_code_info(),
+                    )
+                ).into_bytes(),
+            );
+            content.extend(
+                format!(
+                    "\n\n{}",
+                    message_type_to_input_type(
+                        message_type,
+                        idx,
+                        file_descriptors[0].get_source_code_info(),
+                    )
+                ).into_bytes(),
             );
         }
         results.push(GenResult {

@@ -8,8 +8,24 @@ type Topping {
   sweet: Boolean!
 }
 
+# Describes a Pizza topping
+input ToppingInput {
+  name: String!
+  # Is it sweet?
+  # ...or what
+  sweet: Boolean!
+}
+
 # A pizza, with toppings and stuff
 type Pizza {
+  title: String!
+  # How the pizza is usually called
+  # Where the pizza is from
+  origin: String!
+}
+
+# A pizza, with toppings and stuff
+input PizzaInput {
   title: String!
   # How the pizza is usually called
   # Where the pizza is from
