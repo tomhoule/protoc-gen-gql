@@ -23,7 +23,7 @@ impl ::std::fmt::Display for Field {
         for line in comment.lines() {
             write!(formatter, "  #{}\n", line)?;
         }
-        write!(formatter, "  {}: {}\n", self.name, self.type_)
+        write!(formatter, "  {}: {}!\n", self.name, self.type_)
     }
 }
 
@@ -38,7 +38,7 @@ impl ::std::fmt::Display for ObjectType {
         let fields: String = self.fields.iter().map(|f| format!("{}", f)).collect();
         let comment = self.description.clone().unwrap_or("".to_string());
         for line in comment.lines() {
-            write!(formatter, "  #{}\n", line)?;
+            write!(formatter, "#{}\n", line)?;
         }
         write!(formatter, "type {} {{\n{}}}", self.name, fields)
     }

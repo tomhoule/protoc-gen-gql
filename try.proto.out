@@ -2,16 +2,16 @@
 
 # Describes a Pizza topping
 type Topping {
-  name: String
+  name: String!
   # Is it sweet?
   # ...or what
-  sweet: Boolean
+  sweet: Boolean!
 }
 
 # A pizza, with toppings and stuff
 type Pizza {
-  title: String
+  title: String!
   # How the pizza is usually called
   # Where the pizza is from
-  origin: String
+  origin: String!
 }
