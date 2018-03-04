@@ -1,6 +1,12 @@
 // Describes a Pizza topping
-type Topping
+type Topping {
+name: String
+// sweet: Boolean
+}
 
 // A pizza, with toppings and stuff
-type Pizza
+type Pizza {
+title: String
+// origin: String
+}
 
