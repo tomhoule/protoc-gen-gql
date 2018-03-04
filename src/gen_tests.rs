@@ -74,13 +74,19 @@ fn it_works_for_basic_types() {
     Project::new()
         .source_file(file)
         .target_file("meh")
-        .expect("meh.out", "type Pizza\n\ntype Topping\n\n")
+        .expect("meh.out", r##"
+
+type Pizza {
+}
+
+type Topping {
+}"##)
         .unwrap();
 }
 
 #[test]
 fn empty_proto_source_file() {
-    let mut file = FileDescriptorProto::new();
+    let file = FileDescriptorProto::new();
     Project::new()
         .source_file(file)
         .target_file("meh")

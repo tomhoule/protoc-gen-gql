@@ -36,7 +36,11 @@ struct ObjectType {
 impl ::std::fmt::Display for ObjectType {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error>{
         let fields: String = self.fields.iter().map(|f| format!("{}", f)).collect();
-        write!(formatter, "#{}type {} {{\n{}}}", self.description.clone().unwrap_or("".to_string()), self.name, fields)
+        let comment = self.description.clone().unwrap_or("".to_string());
+        for line in comment.lines() {
+            write!(formatter, "  #{}\n", line)?;
+        }
+        write!(formatter, "type {} {{\n{}}}", self.name, fields)
     }
 }
 
@@ -62,8 +66,7 @@ fn fields_to_gql(
 ) -> Vec<Field> {
     fields
         .iter()
-        .enumerate()
-        .map(|(idx, f)| {
+        .map(|f| {
             let comment: String = source_info
                 .get_location()
                 .iter()
@@ -118,7 +121,7 @@ pub fn gen(
     file_descriptors: &[FileDescriptorProto],
     files_to_generate: &[String],
 ) -> Vec<compiler_plugin::GenResult> {
-    let files_map: HashMap<&str, &FileDescriptorProto> =
+    let _files_map: HashMap<&str, &FileDescriptorProto> =
         file_descriptors.iter().map(|f| (f.get_name(), f)).collect();
 
     // See https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/DescriptorProtos.SourceCodeInfo.Location
