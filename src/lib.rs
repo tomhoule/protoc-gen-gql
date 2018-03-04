@@ -11,6 +11,35 @@ use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
 use protobuf::descriptorx::*;
 
+struct Field {
+    pub description: Option<String>,
+    pub name: String,
+    pub type_: String,
+}
+
+impl ::std::fmt::Display for Field {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error>{
+        let comment = self.description.clone().unwrap_or("".to_string());
+        for line in comment.lines() {
+            write!(formatter, "  #{}\n", line)?;
+        }
+        write!(formatter, "  {}: {}\n", self.name, self.type_)
+    }
+}
+
+struct ObjectType {
+    pub name: String,
+    pub fields: Vec<Field>,
+    pub description: Option<String>,
+}
+
+impl ::std::fmt::Display for ObjectType {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error>{
+        let fields: String = self.fields.iter().map(|f| format!("{}", f)).collect();
+        write!(formatter, "#{}type {} {{\n{}}}", self.description.clone().unwrap_or("".to_string()), self.name, fields)
+    }
+}
+
 fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type) -> String {
     match field_type {
         FieldDescriptorProto_Type::TYPE_BOOL => "Boolean".to_string(),
@@ -30,7 +59,7 @@ fn fields_to_gql(
     fields: &[FieldDescriptorProto],
     message_type_index: usize,
     source_info: &SourceCodeInfo,
-) -> String {
+) -> Vec<Field> {
     fields
         .iter()
         .enumerate()
@@ -38,33 +67,34 @@ fn fields_to_gql(
             let comment: String = source_info
                 .get_location()
                 .iter()
-                .find(|loc| {
+                .filter(|loc| {
                     let path = loc.get_path();
-                    path.get(0) == Some(&4) &&
-                    path.get(1) == Some(&(message_type_index as i32)) &&
-                    path.get(2) == Some(&(idx as i32))
+                    path.get(0) == Some(&4) && path.get(1) == Some(&(message_type_index as i32))
+                        && path.get(2) == Some(&f.get_number())
                 })
                 .map(|loc| {
-                    format!("// {}{}", loc.get_leading_comments(), loc.get_trailing_comments())
+                    format!(
+                        "{}{}",
+                        loc.get_leading_comments(),
+                        loc.get_trailing_comments()
+                    )
                 })
-                .unwrap_or("".to_string());
-            format!(
-                "{}{}: {}\n",
-                comment,
-                f.get_name(),
-                proto_field_type_to_gql_type(f.get_field_type())
-            )
+                .collect();
+            Field {
+                description: if comment.is_empty() { None } else { Some(comment) },
+                name: f.get_name().to_string(),
+                type_: proto_field_type_to_gql_type(f.get_field_type()),
+            }
         })
-        .collect::<String>()
+        .collect()
 }
 
 fn message_type_to_gql(
     message: &DescriptorProto,
     message_type_index: usize,
     source_info: &SourceCodeInfo,
-) -> String {
-    format!(
-        "{}type {} {{\n{}}}\n\n",
+) -> ObjectType {
+    let description = 
         source_info
             .get_location()
             .iter()
@@ -74,14 +104,14 @@ fn message_type_to_gql(
                 if comment.is_empty() {
                     None
                 } else {
-                    Some(comment)
+                    Some(comment.to_string())
                 }
-            })
-            .map(|comment| format!("//{}", comment))
-            .unwrap_or("".to_string()),
-        message.get_name(),
-        fields_to_gql(message.get_field(), message_type_index, source_info),
-    )
+            });
+    ObjectType {
+        name: message.get_name().to_string(),
+        fields: fields_to_gql(message.get_field(), message_type_index, source_info),
+        description,
+    }
 }
 
 pub fn gen(
@@ -106,11 +136,11 @@ pub fn gen(
         let mut content: Vec<u8> = Vec::new();
         for (idx, message_type) in file_descriptors[0].get_message_type().iter().enumerate() {
             content.extend(
-                message_type_to_gql(
+                format!("\n\n{}", message_type_to_gql(
                     message_type,
                     idx,
                     file_descriptors[0].get_source_code_info(),
-                ).into_bytes(),
+                )).into_bytes(),
             );
         }
         results.push(GenResult {

@@ -1,12 +1,17 @@
-// Describes a Pizza topping
+
+
+# Describes a Pizza topping
 type Topping {
-name: String
-// sweet: Boolean
+  name: String
+  # Is it sweet?
+  # ...or what
+  sweet: Boolean
 }
 
-// A pizza, with toppings and stuff
+# A pizza, with toppings and stuff
 type Pizza {
-title: String
-// origin: String
+  title: String
+  # How the pizza is usually called
+  # Where the pizza is from
+  origin: String
 }
-
