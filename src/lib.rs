@@ -161,6 +161,17 @@ fn message_type_to_input_type(
     }
 }
 
+fn expand_service(
+    service: &ServiceDescriptorProto,
+) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+    for method in service.get_method() {
+        write!(out, "\n{}($in: {}): {}\n", method.get_name(), method.get_input_type(), method.get_output_type()).unwrap();
+    }
+    out
+}
+
 pub fn gen(
     file_descriptors: &[FileDescriptorProto],
     files_to_generate: &[String],
@@ -181,6 +192,13 @@ pub fn gen(
 
     for file_name in files_to_generate {
         let mut content: Vec<u8> = Vec::new();
+
+        for service in file_descriptors[0].get_service() {
+            content.extend(
+                format!("\n\nnamespace {} {{ {} }}", service.get_name(), expand_service(service)).into_bytes()
+            )
+        }
+
         for (idx, message_type) in file_descriptors[0].get_message_type().iter().enumerate() {
             content.extend(
                 format!(

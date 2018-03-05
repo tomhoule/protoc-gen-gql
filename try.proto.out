@@ -1,6 +1,9 @@
 
 
-# Describes a Pizza topping
+namespace Pizzeria { 
+MakeSimplePizza($in: .Topping): .Pizza
+ }
+
 type Topping {
   name: String!
   # Is it sweet?
@@ -8,7 +11,6 @@ type Topping {
   sweet: Boolean!
 }
 
-# Describes a Pizza topping
 input ToppingInput {
   name: String!
   # Is it sweet?

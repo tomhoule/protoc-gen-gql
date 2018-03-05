@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+service Pizzeria {
+  rpc MakeSimplePizza (Topping) returns (Pizza);
+}
+
 // Describes a Pizza topping
 message Topping {
     string name = 1;
