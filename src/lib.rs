@@ -61,7 +61,7 @@ impl ::std::fmt::Display for InputType {
     }
 }
 
-fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type) -> String {
+fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type, type_name: &str, label: FieldDescriptorProto_Label) -> String {
     match field_type {
         FieldDescriptorProto_Type::TYPE_BOOL => "Boolean".to_string(),
         FieldDescriptorProto_Type::TYPE_STRING => "String".to_string(),
@@ -72,7 +72,8 @@ fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type) -> String
         FieldDescriptorProto_Type::TYPE_FLOAT | FieldDescriptorProto_Type::TYPE_DOUBLE => {
             "Float".to_string()
         }
-        _ => unimplemented!(),
+        FieldDescriptorProto_Type::TYPE_MESSAGE => type_name.to_string(),
+        t => unimplemented!("Unhandled type {:?}", t),
     }
 }
 
@@ -107,7 +108,7 @@ fn fields_to_gql(
                     Some(comment)
                 },
                 name: f.get_name().to_string(),
-                type_: proto_field_type_to_gql_type(f.get_field_type()),
+                type_: proto_field_type_to_gql_type(f.get_field_type(), f.get_type_name(), f.get_label()),
             }
         })
         .collect()
@@ -193,34 +194,38 @@ pub fn gen(
     for file_name in files_to_generate {
         let mut content: Vec<u8> = Vec::new();
 
-        for service in file_descriptors[0].get_service() {
-            content.extend(
-                format!("\n\nnamespace {} {{ {} }}", service.get_name(), expand_service(service)).into_bytes()
-            )
+        for descriptor in file_descriptors.iter() {
+
+            for service in descriptor.get_service() {
+                content.extend(
+                    format!("\n\nnamespace {} {{ {} }}", service.get_name(), expand_service(service)).into_bytes()
+                    )
+            }
+
+            for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
+                content.extend(
+                    format!(
+                        "\n\n{}",
+                        message_type_to_gql(
+                            message_type,
+                            idx,
+                            descriptor.get_source_code_info(),
+                            )
+                        ).into_bytes(),
+                        );
+                content.extend(
+                    format!(
+                        "\n\n{}",
+                        message_type_to_input_type(
+                            message_type,
+                            idx,
+                            descriptor.get_source_code_info(),
+                            )
+                        ).into_bytes(),
+                        );
+            }
         }
 
-        for (idx, message_type) in file_descriptors[0].get_message_type().iter().enumerate() {
-            content.extend(
-                format!(
-                    "\n\n{}",
-                    message_type_to_gql(
-                        message_type,
-                        idx,
-                        file_descriptors[0].get_source_code_info(),
-                    )
-                ).into_bytes(),
-            );
-            content.extend(
-                format!(
-                    "\n\n{}",
-                    message_type_to_input_type(
-                        message_type,
-                        idx,
-                        file_descriptors[0].get_source_code_info(),
-                    )
-                ).into_bytes(),
-            );
-        }
         results.push(GenResult {
             name: format!("{}.out", file_name),
             content,

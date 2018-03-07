@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 service Pizzeria {
   rpc MakeSimplePizza (Topping) returns (Pizza);
 }
@@ -18,4 +20,5 @@ message Pizza {
     string title = 1;
     // Where the pizza is from
     string origin = 2;
+    google.protobuf.Timestamp baked_at = 3;
 }
