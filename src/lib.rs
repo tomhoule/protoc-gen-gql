@@ -1,3 +1,4 @@
+extern crate regex;
 extern crate protobuf;
 
 #[cfg(test)]
