@@ -3,6 +3,7 @@ extern crate protobuf;
 
 #[cfg(test)]
 mod gen_tests;
+mod support;
 
 use std::collections::HashMap;
 
