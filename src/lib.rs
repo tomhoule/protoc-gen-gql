@@ -19,8 +19,67 @@ use protobuf::descriptor::*;
 struct Field {
     pub description: Option<String>,
     pub name: String,
-    pub type_: String,
+    pub type_: FieldType,
     pub required: bool,
+}
+
+#[derive(Debug, Clone)]
+struct FieldType {
+    pub proto_type: FieldDescriptorProto_Type,
+    pub type_name: String,
+    pub label: FieldDescriptorProto_Label,
+}
+
+impl FieldType {
+    fn format_required(
+        &self,
+        formatter: &mut ::std::fmt::Formatter,
+    ) -> Result<(), ::std::fmt::Error> {
+        match self.proto_type {
+            FieldDescriptorProto_Type::TYPE_BOOL => write!(formatter, "{}", "Boolean"),
+            FieldDescriptorProto_Type::TYPE_STRING => write!(formatter, "{}", "String"),
+            FieldDescriptorProto_Type::TYPE_INT32
+            | FieldDescriptorProto_Type::TYPE_INT64
+            | FieldDescriptorProto_Type::TYPE_UINT32
+            | FieldDescriptorProto_Type::TYPE_UINT64 => write!(formatter, "Int"),
+            FieldDescriptorProto_Type::TYPE_FLOAT | FieldDescriptorProto_Type::TYPE_DOUBLE => {
+                write!(formatter, "Float")
+            }
+            FieldDescriptorProto_Type::TYPE_MESSAGE => write!(
+                formatter,
+                "{}",
+                support::strip_leading_dots(&self.type_name)
+                    .replace(".", "_")
+                    .to_camel_case()
+            ),
+            t => unimplemented!("Unhandled type {:?}", t),
+        }
+    }
+
+    fn format_optional(
+        &self,
+        formatter: &mut ::std::fmt::Formatter,
+    ) -> Result<(), ::std::fmt::Error> {
+        match self.proto_type {
+            FieldDescriptorProto_Type::TYPE_BOOL => write!(formatter, "{}", "Boolean"),
+            FieldDescriptorProto_Type::TYPE_STRING => write!(formatter, "{}", "String"),
+            FieldDescriptorProto_Type::TYPE_INT32
+            | FieldDescriptorProto_Type::TYPE_INT64
+            | FieldDescriptorProto_Type::TYPE_UINT32
+            | FieldDescriptorProto_Type::TYPE_UINT64 => write!(formatter, "Int"),
+            FieldDescriptorProto_Type::TYPE_FLOAT | FieldDescriptorProto_Type::TYPE_DOUBLE => {
+                write!(formatter, "Float")
+            }
+            FieldDescriptorProto_Type::TYPE_MESSAGE => write!(
+                formatter,
+                "{}Input",
+                support::strip_leading_dots(&self.type_name)
+                    .replace(".", "_")
+                    .to_camel_case()
+            ),
+            t => unimplemented!("Unhandled type {:?}", t),
+        }
+    }
 }
 
 impl ::std::fmt::Display for Field {
@@ -29,13 +88,16 @@ impl ::std::fmt::Display for Field {
         for line in comment.lines() {
             write!(formatter, "  #{}\n", line)?;
         }
-        write!(
-            formatter,
-            "  {}: {}{}\n",
-            self.name,
-            self.type_,
-            if self.required { "!" } else { "" }
-        )
+
+        write!(formatter, "  {}: ", self.name,)?;
+
+        if self.required {
+            self.type_.format_required(formatter)?
+        } else {
+            self.type_.format_optional(formatter)?
+        }
+        
+        write!(formatter, "{}\n", if self.required { "!" } else { "" })
     }
 }
 
@@ -94,21 +156,11 @@ fn proto_field_type_to_gql_type(
     field_type: FieldDescriptorProto_Type,
     type_name: &str,
     label: FieldDescriptorProto_Label,
-) -> String {
-    match field_type {
-        FieldDescriptorProto_Type::TYPE_BOOL => "Boolean".to_string(),
-        FieldDescriptorProto_Type::TYPE_STRING => "String".to_string(),
-        FieldDescriptorProto_Type::TYPE_INT32
-        | FieldDescriptorProto_Type::TYPE_INT64
-        | FieldDescriptorProto_Type::TYPE_UINT32
-        | FieldDescriptorProto_Type::TYPE_UINT64 => "Int".to_string(),
-        FieldDescriptorProto_Type::TYPE_FLOAT | FieldDescriptorProto_Type::TYPE_DOUBLE => {
-            "Float".to_string()
-        }
-        FieldDescriptorProto_Type::TYPE_MESSAGE => {
-            support::strip_leading_dots(type_name).to_string()
-        }
-        t => unimplemented!("Unhandled type {:?}", t),
+) -> FieldType {
+    FieldType {
+        proto_type: field_type,
+        type_name: type_name.to_string(),
+        label,
     }
 }
 

@@ -190,7 +190,7 @@ type Pizza {
   title: String!
   # Where the pizza is from
   origin: String!
-  baked_at: google.protobuf.Timestamp!
+  baked_at: GoogleProtobufTimestamp!
 }
 
 # A pizza, with toppings and stuff
@@ -199,7 +199,7 @@ input PizzaInput {
   title: String
   # Where the pizza is from
   origin: String
-  baked_at: google.protobuf.Timestamp
+  baked_at: GoogleProtobufTimestampInput
 }
 
 # Describes a Pizza topping
