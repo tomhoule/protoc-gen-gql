@@ -96,7 +96,7 @@ impl ::std::fmt::Display for Field {
         } else {
             self.type_.format_optional(formatter)?
         }
-        
+
         write!(formatter, "{}\n", if self.required { "!" } else { "" })
     }
 }
@@ -264,10 +264,11 @@ fn expand_service(service: &ServiceDescriptorProto) -> String {
     for method in service.get_method() {
         write!(
             out,
-            "\n{}($in: {}): {}\n",
-            method.get_name(),
-            method.get_input_type(),
-            method.get_output_type()
+            "\n  {}({}: {}): {}\n",
+            method.get_name().to_mixed_case(),
+            method.get_input_type().to_snake_case(),
+            method.get_input_type().to_camel_case(),
+            method.get_output_type().to_camel_case(),
         ).unwrap();
     }
     out
@@ -298,7 +299,7 @@ pub fn gen(
             for service in descriptor.get_service() {
                 content.extend(
                     format!(
-                        "\n\nnamespace {} {{ {} }}",
+                        "\n\nnamespace {} {{{}}}",
                         service.get_name(),
                         expand_service(service)
                     ).into_bytes(),

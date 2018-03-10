@@ -180,9 +180,9 @@ input GoogleProtobufTimestampInput {
   nanos: Int
 }
 
-namespace Pizzeria { 
-MakeSimplePizza($in: .Topping): .Pizza
- }
+namespace Pizzeria {
+  makeSimplePizza(topping: Topping): Pizza
+}
 
 # A pizza, with toppings and stuff
 type Pizza {
