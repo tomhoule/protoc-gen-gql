@@ -149,13 +149,6 @@ fn message_type_to_input_type(
     message_type_to_gql(message, message_type_index, source_info, package_name).into()
 }
 
-fn expand_service(service: &ServiceDescriptorProto) -> String {
-    use std::fmt::Write;
-    let mut out = String::new();
-    for method in service.get_method() {}
-    out
-}
-
 pub fn gen(
     file_descriptors: &[FileDescriptorProto],
     files_to_generate: &[String],
