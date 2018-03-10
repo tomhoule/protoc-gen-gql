@@ -1,3 +1,4 @@
+extern crate heck;
 extern crate protobuf;
 extern crate regex;
 
@@ -7,11 +8,12 @@ mod support;
 
 use std::collections::HashMap;
 
+use heck::*;
+
 use protobuf::compiler_plugin;
 use protobuf::code_writer::CodeWriter;
 use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
-use protobuf::descriptorx::*;
 
 #[derive(Debug)]
 struct Field {
@@ -160,8 +162,17 @@ fn message_type_to_gql(
         .map(|loc| loc.get_leading_comments())
         .collect();
     let fields = fields_to_gql(message.get_field(), message_type_index, source_info);
+    let name = if package_name.is_empty() {
+        message.get_name().to_string()
+    } else {
+        format!(
+            "{}{}",
+            package_name.replace(".", "_").to_camel_case(),
+            message.get_name()
+        ).to_string()
+    };
     ObjectType {
-        name: message.get_name().to_string(),
+        name,
         fields,
         description: if description.is_empty() {
             None

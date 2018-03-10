@@ -78,7 +78,7 @@
 # to obtain a formatter capable of generating timestamps in this format.
 #
 #
-type Timestamp {
+type GoogleProtobufTimestamp {
   # Represents seconds of UTC time since Unix epoch
   # 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   # 9999-12-31T23:59:59Z inclusive.
@@ -168,7 +168,7 @@ type Timestamp {
 # to obtain a formatter capable of generating timestamps in this format.
 #
 #
-input TimestampInput {
+input GoogleProtobufTimestampInput {
   # Represents seconds of UTC time since Unix epoch
   # 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   # 9999-12-31T23:59:59Z inclusive.
@@ -193,6 +193,7 @@ type Pizza {
   baked_at: google.protobuf.Timestamp!
 }
 
+# A pizza, with toppings and stuff
 input PizzaInput {
   # How the pizza is usually called
   title: String!

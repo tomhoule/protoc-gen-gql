@@ -6,3 +6,4 @@ authors = ["Tom Houlé <tom@tomhoule.com>"]
 [dependencies]
 regex = "*"
 protobuf = "*"
+heck = "0.3.0"
