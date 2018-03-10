@@ -189,6 +189,8 @@ type Pizza {
   baked_at: GoogleProtobufTimestamp!
   # What toppings the pizza has
   toppings: [Topping]!
+  # Right or wrong sauce
+  sauce: PizzaSauce!
 }
 
 # A pizza, with toppings and stuff
@@ -200,6 +202,8 @@ input PizzaInput {
   baked_at: GoogleProtobufTimestampInput
   # What toppings the pizza has
   toppings: [ToppingInput]
+  # Right or wrong sauce
+  sauce: PizzaSauce
 }
 
 # Describes a Pizza topping

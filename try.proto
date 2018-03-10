@@ -6,8 +6,17 @@ service Pizzeria {
   rpc MakeSimplePizza (Topping) returns (Pizza);
 }
 
+
 // A pizza, with toppings and stuff
 message Pizza {
+    enum Sauce {
+        TOMATO = 0;
+        CREAM = 1;
+        WITHOUT = 2;
+        JAM = 3;
+        BARBECUE = 4;
+    }
+
     // How the pizza is usually called
     string title = 1;
     // Where the pizza is from
@@ -16,6 +25,7 @@ message Pizza {
     google.protobuf.Timestamp baked_at = 3;
     // What toppings the pizza has
     repeated Topping toppings = 4;
+    Sauce sauce = 5; // Right or wrong sauce
 }
 
 // Describes a Pizza topping

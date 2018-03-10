@@ -58,6 +58,11 @@ impl FieldType {
                     .replace(".", "_")
                     .to_camel_case()
             ),
+            FieldDescriptorProto_Type::TYPE_ENUM => write!(
+                formatter,
+                "{}",
+                &self.type_name.replace(".", "_").to_camel_case()
+            ),
             t => unimplemented!("Unhandled type {:?}", t),
         }?;
 
@@ -77,7 +82,6 @@ impl FieldType {
             write!(formatter, "[")?;
         }
 
-
         match self.proto_type {
             FieldDescriptorProto_Type::TYPE_BOOL => write!(formatter, "{}", "Boolean"),
             FieldDescriptorProto_Type::TYPE_STRING => write!(formatter, "{}", "String"),
@@ -95,9 +99,13 @@ impl FieldType {
                     .replace(".", "_")
                     .to_camel_case()
             ),
+            FieldDescriptorProto_Type::TYPE_ENUM => write!(
+                formatter,
+                "{}",
+                &self.type_name.replace(".", "_").to_camel_case()
+            ),
             t => unimplemented!("Unhandled type {:?}", t),
         }?;
-
 
         if repeated {
             write!(formatter, "]")?;

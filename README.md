@@ -8,7 +8,7 @@
     - [ ] Enums
     - [ ] `oneof`
     - [ ] Maps
-    - [x] Protobuf imports
+    - [x] Protobuf modules and imports
     - [x] Preserves doc comments in the GraphQL output
 - [ ] JS server generation (with [graphql-yoga](https://en.wikipedia.org/wiki/yoga) and [Protobuf.js](https://en.wikipedia.org))
     - [ ] Generates Apollo resolvers
