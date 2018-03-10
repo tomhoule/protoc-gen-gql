@@ -172,12 +172,12 @@ input GoogleProtobufTimestampInput {
   # Represents seconds of UTC time since Unix epoch
   # 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   # 9999-12-31T23:59:59Z inclusive.
-  seconds: Int!
+  seconds: Int
   # Non-negative fractions of a second at nanosecond resolution. Negative
   # second values with fractions must still have non-negative nanos values
   # that count forward in time. Must be from 0 to 999,999,999
   # inclusive.
-  nanos: Int!
+  nanos: Int
 }
 
 namespace Pizzeria { 
@@ -196,10 +196,10 @@ type Pizza {
 # A pizza, with toppings and stuff
 input PizzaInput {
   # How the pizza is usually called
-  title: String!
+  title: String
   # Where the pizza is from
-  origin: String!
-  baked_at: google.protobuf.Timestamp!
+  origin: String
+  baked_at: google.protobuf.Timestamp
 }
 
 # Describes a Pizza topping
@@ -212,8 +212,8 @@ type Topping {
 
 # Describes a Pizza topping
 input ToppingInput {
-  name: String!
+  name: String
   # Is it sweet?
   # ...or what
-  sweet: Boolean!
+  sweet: Boolean
 }

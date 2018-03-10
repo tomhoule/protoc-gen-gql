@@ -15,11 +15,12 @@ use protobuf::code_writer::CodeWriter;
 use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Field {
     pub description: Option<String>,
     pub name: String,
     pub type_: String,
+    pub required: bool,
 }
 
 impl ::std::fmt::Display for Field {
@@ -28,7 +29,13 @@ impl ::std::fmt::Display for Field {
         for line in comment.lines() {
             write!(formatter, "  #{}\n", line)?;
         }
-        write!(formatter, "  {}: {}!\n", self.name, self.type_)
+        write!(
+            formatter,
+            "  {}: {}{}\n",
+            self.name,
+            self.type_,
+            if self.required { "!" } else { "" }
+        )
     }
 }
 
@@ -70,7 +77,14 @@ impl ::std::convert::From<ObjectType> for InputType {
     fn from(input: ObjectType) -> InputType {
         InputType {
             name: input.name,
-            fields: input.fields,
+            fields: input
+                .fields
+                .iter()
+                .map(|f| Field {
+                    required: false,
+                    ..f.clone()
+                })
+                .collect(),
             description: input.description,
         }
     }
@@ -141,6 +155,7 @@ fn fields_to_gql(
                     f.get_type_name(),
                     f.get_label(),
                 ),
+                required: true,
             }
         })
         .collect()
