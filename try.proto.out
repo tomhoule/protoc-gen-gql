@@ -180,10 +180,6 @@ input GoogleProtobufTimestampInput {
   nanos: Int
 }
 
-namespace Pizzeria {
-  makeSimplePizza(topping: Topping): Pizza
-}
-
 # A pizza, with toppings and stuff
 type Pizza {
   # How the pizza is usually called
@@ -216,4 +212,12 @@ input ToppingInput {
   # Is it sweet?
   # ...or what
   sweet: Boolean
+}
+
+type PizzeriaService {
+  makeSimplePizza(topping: ToppingInput!): Pizza!
+}
+
+type Query {
+  pizzeria: PizzeriaService!
 }

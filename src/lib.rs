@@ -152,6 +152,30 @@ impl ::std::convert::From<ObjectType> for InputType {
     }
 }
 
+struct Service {
+    pub name: String,
+    pub methods: Vec<MethodDescriptorProto>,
+}
+
+impl ::std::fmt::Display for Service {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        write!(formatter, "\n\ntype {}Service {{", self.name,)?;
+
+        for method in self.methods.iter() {
+            write!(
+                formatter,
+                "\n  {}({}: {}Input!): {}!",
+                method.get_name().to_mixed_case(),
+                method.get_input_type().to_snake_case(),
+                method.get_input_type().to_camel_case(),
+                method.get_output_type().to_camel_case(),
+            )?;
+        }
+
+        write!(formatter, "\n}}")
+    }
+}
+
 fn proto_field_type_to_gql_type(
     field_type: FieldDescriptorProto_Type,
     type_name: &str,
@@ -261,16 +285,7 @@ fn message_type_to_input_type(
 fn expand_service(service: &ServiceDescriptorProto) -> String {
     use std::fmt::Write;
     let mut out = String::new();
-    for method in service.get_method() {
-        write!(
-            out,
-            "\n  {}({}: {}): {}\n",
-            method.get_name().to_mixed_case(),
-            method.get_input_type().to_snake_case(),
-            method.get_input_type().to_camel_case(),
-            method.get_output_type().to_camel_case(),
-        ).unwrap();
-    }
+    for method in service.get_method() {}
     out
 }
 
@@ -291,19 +306,17 @@ pub fn gen(
     // };
 
     let mut results = Vec::new();
+    let mut services: Vec<Service> = Vec::new();
 
     for file_name in files_to_generate {
         let mut content: Vec<u8> = Vec::new();
 
         for descriptor in file_descriptors.iter() {
             for service in descriptor.get_service() {
-                content.extend(
-                    format!(
-                        "\n\nnamespace {} {{{}}}",
-                        service.get_name(),
-                        expand_service(service)
-                    ).into_bytes(),
-                )
+                services.push(Service {
+                    name: service.get_name().to_string(),
+                    methods: service.get_method().into(),
+                })
             }
 
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
@@ -330,6 +343,24 @@ pub fn gen(
                     ).into_bytes(),
                 );
             }
+        }
+
+        for service in services.iter() {
+            content.extend(format!("{}", service).into_bytes())
+        }
+
+        if services.len() > 0 {
+            content.extend(format!("\n\ntype Query {{").into_bytes());
+            for service in services.iter() {
+                content.extend(
+                    format!(
+                        "\n  {}: {}Service!",
+                        service.name.to_mixed_case(),
+                        service.name
+                    ).into_bytes(),
+                );
+            }
+            content.extend("\n}".as_bytes());
         }
 
         results.push(GenResult {
