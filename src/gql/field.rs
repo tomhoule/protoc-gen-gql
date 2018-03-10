@@ -120,3 +120,26 @@ impl ::std::fmt::Display for Field {
         write!(formatter, "{}\n", if self.required { "!" } else { "" })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn field_display() {
+        let ty = FieldType {
+            proto_type: FieldDescriptorProto_Type::TYPE_MESSAGE,
+            type_name: "Cat".to_string(),
+            label: FieldDescriptorProto_Label::LABEL_OPTIONAL,
+        };
+
+        let field = Field {
+            description: None,
+            name: "feline".to_string(),
+            type_: ty,
+            required: true,
+        };
+
+        assert_eq!(field.to_string(), "  feline: Cat!\n");
+    }
+}

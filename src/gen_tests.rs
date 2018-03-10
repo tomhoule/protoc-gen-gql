@@ -78,13 +78,19 @@ fn it_works_for_basic_types() {
         .target_file("meh")
         .expect(
             "meh.out",
-            r##"
+            r##"type Pizza {
+}
 
-type Pizza {
+input PizzaInput {
 }
 
 type Topping {
-}"##,
+}
+
+input ToppingInput {
+}
+
+"##,
         )
         .unwrap();
 }

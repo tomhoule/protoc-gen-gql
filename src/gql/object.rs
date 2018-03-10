@@ -17,3 +17,34 @@ impl ::std::fmt::Display for ObjectType {
         write!(formatter, "type {} {{\n{}}}", self.name, fields)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gql::{Field, FieldType};
+    use protobuf::descriptor::*;
+
+    #[test]
+    fn object_type_display() {
+        let ty = FieldType {
+            proto_type: FieldDescriptorProto_Type::TYPE_MESSAGE,
+            type_name: "Cat".to_string(),
+            label: FieldDescriptorProto_Label::LABEL_OPTIONAL,
+        };
+
+        let field = Field {
+            description: None,
+            name: "feline".to_string(),
+            type_: ty,
+            required: true,
+        };
+
+        let object = ObjectType {
+            name: "Pet".to_string(),
+            fields: vec![field],
+            description: None,
+        };
+
+        assert_eq!(object.to_string(), "type Pet {\n  feline: Cat!\n}");
+    }
+}
