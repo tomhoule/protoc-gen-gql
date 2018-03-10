@@ -18,7 +18,7 @@ use protobuf::code_writer::CodeWriter;
 use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
 
-
+#[derive(Debug, Clone)]
 struct Service {
     pub name: String,
     pub methods: Vec<MethodDescriptorProto>,
@@ -26,7 +26,7 @@ struct Service {
 
 impl ::std::fmt::Display for Service {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
-        write!(formatter, "\n\ntype {}Service {{", self.name,)?;
+        write!(formatter, "type {}Service {{", self.name,)?;
 
         for method in self.methods.iter() {
             write!(
@@ -140,13 +140,69 @@ fn message_type_to_gql(
     }
 }
 
-fn message_type_to_input_type(
-    message: &DescriptorProto,
-    message_type_index: usize,
-    source_info: &SourceCodeInfo,
-    package_name: &str,
-) -> InputType {
-    message_type_to_gql(message, message_type_index, source_info, package_name).into()
+struct GqlTypeDefs {
+    objects: Vec<ObjectType>,
+    enums: Vec<EnumType>,
+    services: Vec<Service>,
+}
+
+impl GqlTypeDefs {
+    pub fn new() -> GqlTypeDefs {
+        GqlTypeDefs {
+            objects: Vec::new(),
+            enums: Vec::new(),
+            services: Vec::new(),
+        }
+    }
+
+    pub fn push_service(&mut self, service: Service) {
+        self.services.push(service)
+    }
+
+    pub fn push_object(&mut self, object: ObjectType) {
+        self.objects.push(object)
+    }
+
+    pub fn push_enum(&mut self, enum_: EnumType) {
+        self.enums.push(enum_)
+    }
+}
+
+impl ::std::fmt::Display for GqlTypeDefs {
+    fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        for object in self.objects.iter() {
+            write!(formatter, "{}\n\n", object)?;
+            // TODO: Generate only the input types required by the generated services
+            write!(formatter, "{}\n\n", InputType::from((*object).clone()))?;
+        }
+
+        for service in self.services.iter() {
+            write!(formatter, "{}\n\n", service)?;
+        }
+
+        if self.services.len() > 0 {
+            let query = ObjectType {
+                name: "Query".to_string(),
+                description: None,
+                fields: self.services
+                    .iter()
+                    .map(|s| Field {
+                        name: s.name.to_mixed_case(),
+                        description: None,
+                        required: true,
+                        type_: FieldType {
+                            proto_type: FieldDescriptorProto_Type::TYPE_MESSAGE,
+                            type_name: format!("{}Service!", s.name),
+                            label: FieldDescriptorProto_Label::LABEL_REQUIRED,
+                        },
+                    })
+                    .collect(),
+            };
+            write!(formatter, "{}", query)?;
+        }
+
+        Ok(())
+    }
 }
 
 pub fn gen(
@@ -155,6 +211,8 @@ pub fn gen(
 ) -> Vec<compiler_plugin::GenResult> {
     let _files_map: HashMap<&str, &FileDescriptorProto> =
         file_descriptors.iter().map(|f| (f.get_name(), f)).collect();
+
+    let mut type_defs = GqlTypeDefs::new();
 
     // See https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/DescriptorProtos.SourceCodeInfo.Location
     // on where to get comment strings
@@ -166,62 +224,30 @@ pub fn gen(
     // };
 
     let mut results = Vec::new();
-    let mut services: Vec<Service> = Vec::new();
 
     for file_name in files_to_generate {
         let mut content: Vec<u8> = Vec::new();
 
         for descriptor in file_descriptors.iter() {
-            for service in descriptor.get_service() {
-                services.push(Service {
-                    name: service.get_name().to_string(),
-                    methods: service.get_method().into(),
-                })
+            for proto_service in descriptor.get_service() {
+                let service = Service {
+                    name: proto_service.get_name().to_string(),
+                    methods: proto_service.get_method().into(),
+                };
+                type_defs.push_service(service);
             }
 
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
-                content.extend(
-                    format!(
-                        "\n\n{}",
-                        message_type_to_gql(
-                            message_type,
-                            idx,
-                            descriptor.get_source_code_info(),
-                            descriptor.get_package()
-                        )
-                    ).into_bytes(),
-                );
-                content.extend(
-                    format!(
-                        "\n\n{}",
-                        message_type_to_input_type(
-                            message_type,
-                            idx,
-                            descriptor.get_source_code_info(),
-                            descriptor.get_package(),
-                        )
-                    ).into_bytes(),
-                );
+                type_defs.push_object(message_type_to_gql(
+                    message_type,
+                    idx,
+                    descriptor.get_source_code_info(),
+                    descriptor.get_package(),
+                ));
             }
         }
 
-        for service in services.iter() {
-            content.extend(format!("{}", service).into_bytes())
-        }
-
-        if services.len() > 0 {
-            content.extend(format!("\n\ntype Query {{").into_bytes());
-            for service in services.iter() {
-                content.extend(
-                    format!(
-                        "\n  {}: {}Service!",
-                        service.name.to_mixed_case(),
-                        service.name
-                    ).into_bytes(),
-                );
-            }
-            content.extend("\n}".as_bytes());
-        }
+        content.extend(format!("{}", type_defs).into_bytes());
 
         results.push(GenResult {
             name: format!("{}.out", file_name),

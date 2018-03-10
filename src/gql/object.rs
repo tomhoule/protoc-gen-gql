@@ -1,5 +1,6 @@
 use gql::Field;
 
+#[derive(Debug, Clone)]
 pub struct ObjectType {
     pub name: String,
     pub fields: Vec<Field>,
