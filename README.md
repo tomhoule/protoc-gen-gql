@@ -4,7 +4,7 @@
 - [x] GraphQL schema generation
     - [x] Primitive types
     - [x] Messages → Object/Input types
-    - [ ] Repeated fields
+    - [x] Repeated fields
     - [ ] Enums
     - [ ] `oneof`
     - [ ] Maps

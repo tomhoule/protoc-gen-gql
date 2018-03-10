@@ -12,7 +12,10 @@ message Pizza {
     string title = 1;
     // Where the pizza is from
     string origin = 2;
+
     google.protobuf.Timestamp baked_at = 3;
+    // What toppings the pizza has
+    repeated Topping toppings = 4;
 }
 
 // Describes a Pizza topping
@@ -21,5 +24,6 @@ message Topping {
     // Is it sweet?
     // ...or what
     bool sweet = 2;
+    repeated string vitamins = 3;
 }
 

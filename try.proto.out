@@ -187,6 +187,8 @@ type Pizza {
   # Where the pizza is from
   origin: String!
   baked_at: GoogleProtobufTimestamp!
+  # What toppings the pizza has
+  toppings: [Topping]!
 }
 
 # A pizza, with toppings and stuff
@@ -196,6 +198,8 @@ input PizzaInput {
   # Where the pizza is from
   origin: String
   baked_at: GoogleProtobufTimestampInput
+  # What toppings the pizza has
+  toppings: [ToppingInput]
 }
 
 # Describes a Pizza topping
@@ -204,6 +208,7 @@ type Topping {
   # Is it sweet?
   # ...or what
   sweet: Boolean!
+  vitamins: [String]!
 }
 
 # Describes a Pizza topping
@@ -212,6 +217,7 @@ input ToppingInput {
   # Is it sweet?
   # ...or what
   sweet: Boolean
+  vitamins: [String]
 }
 
 type PizzeriaService {

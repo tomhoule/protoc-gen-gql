@@ -35,6 +35,12 @@ impl FieldType {
         &self,
         formatter: &mut ::std::fmt::Formatter,
     ) -> Result<(), ::std::fmt::Error> {
+        let repeated = self.label == FieldDescriptorProto_Label::LABEL_REPEATED;
+
+        if repeated {
+            write!(formatter, "[")?;
+        }
+
         match self.proto_type {
             FieldDescriptorProto_Type::TYPE_BOOL => write!(formatter, "{}", "Boolean"),
             FieldDescriptorProto_Type::TYPE_STRING => write!(formatter, "{}", "String"),
@@ -53,13 +59,25 @@ impl FieldType {
                     .to_camel_case()
             ),
             t => unimplemented!("Unhandled type {:?}", t),
+        }?;
+
+        if repeated {
+            write!(formatter, "]")?;
         }
+        Ok(())
     }
 
     fn format_optional(
         &self,
         formatter: &mut ::std::fmt::Formatter,
     ) -> Result<(), ::std::fmt::Error> {
+        let repeated = self.label == FieldDescriptorProto_Label::LABEL_REPEATED;
+
+        if repeated {
+            write!(formatter, "[")?;
+        }
+
+
         match self.proto_type {
             FieldDescriptorProto_Type::TYPE_BOOL => write!(formatter, "{}", "Boolean"),
             FieldDescriptorProto_Type::TYPE_STRING => write!(formatter, "{}", "String"),
@@ -78,7 +96,14 @@ impl FieldType {
                     .to_camel_case()
             ),
             t => unimplemented!("Unhandled type {:?}", t),
+        }?;
+
+
+        if repeated {
+            write!(formatter, "]")?;
         }
+
+        Ok(())
     }
 }
 
