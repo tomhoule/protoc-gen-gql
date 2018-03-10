@@ -1,4 +1,4 @@
-use gql::{ObjectType, Field};
+use gql::{Field, ObjectType};
 
 pub struct InputType {
     pub name: String,
@@ -33,4 +33,3 @@ impl ::std::convert::From<ObjectType> for InputType {
         }
     }
 }
-
