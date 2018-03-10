@@ -64,6 +64,16 @@ impl ::std::fmt::Display for InputType {
     }
 }
 
+impl ::std::convert::From<ObjectType> for InputType {
+    fn from(input: ObjectType) -> InputType {
+        InputType {
+            name: input.name,
+            fields: input.fields,
+            description: input.description,
+        }
+    }
+}
+
 fn proto_field_type_to_gql_type(
     field_type: FieldDescriptorProto_Type,
     type_name: &str,
@@ -138,6 +148,7 @@ fn message_type_to_gql(
     message: &DescriptorProto,
     message_type_index: usize,
     source_info: &SourceCodeInfo,
+    package_name: &str,
 ) -> ObjectType {
     let description: String = source_info
         .get_location()
@@ -164,27 +175,9 @@ fn message_type_to_input_type(
     message: &DescriptorProto,
     message_type_index: usize,
     source_info: &SourceCodeInfo,
+    package_name: &str,
 ) -> InputType {
-    let description = source_info
-        .get_location()
-        .iter()
-        .find(|loc| {
-            let path = loc.get_path();
-            path.get(1) == Some(&(message_type_index as i32)) && path.get(2) == None
-        })
-        .and_then(|loc| {
-            let comment = loc.get_leading_comments();
-            if comment.is_empty() {
-                None
-            } else {
-                Some(comment.to_string())
-            }
-        });
-    InputType {
-        name: message.get_name().to_string(),
-        fields: fields_to_gql(message.get_field(), message_type_index, source_info),
-        description,
-    }
+    message_type_to_gql(message, message_type_index, source_info, package_name).into()
 }
 
 fn expand_service(service: &ServiceDescriptorProto) -> String {
@@ -238,7 +231,12 @@ pub fn gen(
                 content.extend(
                     format!(
                         "\n\n{}",
-                        message_type_to_gql(message_type, idx, descriptor.get_source_code_info(),)
+                        message_type_to_gql(
+                            message_type,
+                            idx,
+                            descriptor.get_source_code_info(),
+                            descriptor.get_package()
+                        )
                     ).into_bytes(),
                 );
                 content.extend(
@@ -248,6 +246,7 @@ pub fn gen(
                             message_type,
                             idx,
                             descriptor.get_source_code_info(),
+                            descriptor.get_package(),
                         )
                     ).into_bytes(),
                 );
