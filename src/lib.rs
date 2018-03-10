@@ -1,5 +1,5 @@
-extern crate regex;
 extern crate protobuf;
+extern crate regex;
 
 #[cfg(test)]
 mod gen_tests;
@@ -13,6 +13,7 @@ use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
 use protobuf::descriptorx::*;
 
+#[derive(Debug)]
 struct Field {
     pub description: Option<String>,
     pub name: String,
@@ -63,7 +64,11 @@ impl ::std::fmt::Display for InputType {
     }
 }
 
-fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type, type_name: &str, label: FieldDescriptorProto_Label) -> String {
+fn proto_field_type_to_gql_type(
+    field_type: FieldDescriptorProto_Type,
+    type_name: &str,
+    label: FieldDescriptorProto_Label,
+) -> String {
     match field_type {
         FieldDescriptorProto_Type::TYPE_BOOL => "Boolean".to_string(),
         FieldDescriptorProto_Type::TYPE_STRING => "String".to_string(),
@@ -74,7 +79,9 @@ fn proto_field_type_to_gql_type(field_type: FieldDescriptorProto_Type, type_name
         FieldDescriptorProto_Type::TYPE_FLOAT | FieldDescriptorProto_Type::TYPE_DOUBLE => {
             "Float".to_string()
         }
-        FieldDescriptorProto_Type::TYPE_MESSAGE => type_name.to_string(),
+        FieldDescriptorProto_Type::TYPE_MESSAGE => {
+            support::strip_leading_dots(type_name).to_string()
+        }
         t => unimplemented!("Unhandled type {:?}", t),
     }
 }
@@ -91,9 +98,16 @@ fn fields_to_gql(
                 .get_location()
                 .iter()
                 .filter(|loc| {
+                    // https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/DescriptorProtos.SourceCodeInfo.Location#getPath-int-
                     let path = loc.get_path();
-                    path.get(0) == Some(&4) && path.get(1) == Some(&(message_type_index as i32))
-                        && path.get(2) == Some(&f.get_number())
+                    // It's in a message
+                    path.get(0) == Some(&4) &&
+                    // That message
+                    path.get(1) == Some(&(message_type_index as i32)) &&
+                    // It's in a field
+                    path.get(2) == Some(&2) &&
+                    // That field
+                    path.get(3) == Some(&(f.get_number() - 1))
                 })
                 .map(|loc| {
                     format!(
@@ -110,7 +124,11 @@ fn fields_to_gql(
                     Some(comment)
                 },
                 name: f.get_name().to_string(),
-                type_: proto_field_type_to_gql_type(f.get_field_type(), f.get_type_name(), f.get_label()),
+                type_: proto_field_type_to_gql_type(
+                    f.get_field_type(),
+                    f.get_type_name(),
+                    f.get_label(),
+                ),
             }
         })
         .collect()
@@ -121,22 +139,24 @@ fn message_type_to_gql(
     message_type_index: usize,
     source_info: &SourceCodeInfo,
 ) -> ObjectType {
-    let description = source_info
+    let description: String = source_info
         .get_location()
         .iter()
-        .find(|loc| loc.get_path().iter().nth(1) == Some(&(message_type_index as i32)))
-        .and_then(|loc| {
-            let comment = loc.get_leading_comments();
-            if comment.is_empty() {
-                None
-            } else {
-                Some(comment.to_string())
-            }
-        });
+        .filter(|loc| {
+            let path = loc.get_path();
+            path.get(1) == Some(&(message_type_index as i32)) && path.get(2) == None
+        })
+        .map(|loc| loc.get_leading_comments())
+        .collect();
+    let fields = fields_to_gql(message.get_field(), message_type_index, source_info);
     ObjectType {
         name: message.get_name().to_string(),
-        fields: fields_to_gql(message.get_field(), message_type_index, source_info),
-        description,
+        fields,
+        description: if description.is_empty() {
+            None
+        } else {
+            Some(description)
+        },
     }
 }
 
@@ -148,7 +168,10 @@ fn message_type_to_input_type(
     let description = source_info
         .get_location()
         .iter()
-        .find(|loc| loc.get_path().iter().nth(1) == Some(&(message_type_index as i32)))
+        .find(|loc| {
+            let path = loc.get_path();
+            path.get(1) == Some(&(message_type_index as i32)) && path.get(2) == None
+        })
         .and_then(|loc| {
             let comment = loc.get_leading_comments();
             if comment.is_empty() {
@@ -164,13 +187,17 @@ fn message_type_to_input_type(
     }
 }
 
-fn expand_service(
-    service: &ServiceDescriptorProto,
-) -> String {
+fn expand_service(service: &ServiceDescriptorProto) -> String {
     use std::fmt::Write;
     let mut out = String::new();
     for method in service.get_method() {
-        write!(out, "\n{}($in: {}): {}\n", method.get_name(), method.get_input_type(), method.get_output_type()).unwrap();
+        write!(
+            out,
+            "\n{}($in: {}): {}\n",
+            method.get_name(),
+            method.get_input_type(),
+            method.get_output_type()
+        ).unwrap();
     }
     out
 }
@@ -197,24 +224,23 @@ pub fn gen(
         let mut content: Vec<u8> = Vec::new();
 
         for descriptor in file_descriptors.iter() {
-
             for service in descriptor.get_service() {
                 content.extend(
-                    format!("\n\nnamespace {} {{ {} }}", service.get_name(), expand_service(service)).into_bytes()
-                    )
+                    format!(
+                        "\n\nnamespace {} {{ {} }}",
+                        service.get_name(),
+                        expand_service(service)
+                    ).into_bytes(),
+                )
             }
 
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
                 content.extend(
                     format!(
                         "\n\n{}",
-                        message_type_to_gql(
-                            message_type,
-                            idx,
-                            descriptor.get_source_code_info(),
-                            )
-                        ).into_bytes(),
-                        );
+                        message_type_to_gql(message_type, idx, descriptor.get_source_code_info(),)
+                    ).into_bytes(),
+                );
                 content.extend(
                     format!(
                         "\n\n{}",
@@ -222,9 +248,9 @@ pub fn gen(
                             message_type,
                             idx,
                             descriptor.get_source_code_info(),
-                            )
-                        ).into_bytes(),
-                        );
+                        )
+                    ).into_bytes(),
+                );
             }
         }
 

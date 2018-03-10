@@ -6,14 +6,6 @@ service Pizzeria {
   rpc MakeSimplePizza (Topping) returns (Pizza);
 }
 
-// Describes a Pizza topping
-message Topping {
-    string name = 1;
-    // Is it sweet?
-    // ...or what
-    bool sweet = 2;
-}
-
 // A pizza, with toppings and stuff
 message Pizza {
     // How the pizza is usually called
@@ -22,3 +14,12 @@ message Pizza {
     string origin = 2;
     google.protobuf.Timestamp baked_at = 3;
 }
+
+// Describes a Pizza topping
+message Topping {
+    string name = 1;
+    // Is it sweet?
+    // ...or what
+    bool sweet = 2;
+}
+

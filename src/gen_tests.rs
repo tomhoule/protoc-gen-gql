@@ -43,7 +43,9 @@ impl Project {
         assert_eq!(generated.len(), self.expected_results.len());
         for expected in self.expected_results.iter() {
             assert!(
-                generated.iter().any(|g| g.name == expected.name && g.content == expected.content),
+                generated
+                    .iter()
+                    .any(|g| g.name == expected.name && g.content == expected.content),
                 "Expected to find name:\n{:?}\n\ncontent:\n{:?}\n\nin:\n {:?}",
                 expected.name,
                 String::from_utf8(expected.content.clone()).unwrap(),
@@ -74,13 +76,16 @@ fn it_works_for_basic_types() {
     Project::new()
         .source_file(file)
         .target_file("meh")
-        .expect("meh.out", r##"
+        .expect(
+            "meh.out",
+            r##"
 
 type Pizza {
 }
 
 type Topping {
-}"##)
+}"##,
+        )
         .unwrap();
 }
 

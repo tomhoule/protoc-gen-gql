@@ -79,10 +79,10 @@
 #
 #
 type Timestamp {
-  seconds: Int!
   # Represents seconds of UTC time since Unix epoch
   # 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   # 9999-12-31T23:59:59Z inclusive.
+  seconds: Int!
   # Non-negative fractions of a second at nanosecond resolution. Negative
   # second values with fractions must still have non-negative nanos values
   # that count forward in time. Must be from 0 to 999,999,999
@@ -169,10 +169,10 @@ type Timestamp {
 #
 #
 input TimestampInput {
-  seconds: Int!
   # Represents seconds of UTC time since Unix epoch
   # 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
   # 9999-12-31T23:59:59Z inclusive.
+  seconds: Int!
   # Non-negative fractions of a second at nanosecond resolution. Negative
   # second values with fractions must still have non-negative nanos values
   # that count forward in time. Must be from 0 to 999,999,999
@@ -184,6 +184,24 @@ namespace Pizzeria {
 MakeSimplePizza($in: .Topping): .Pizza
  }
 
+# A pizza, with toppings and stuff
+type Pizza {
+  # How the pizza is usually called
+  title: String!
+  # Where the pizza is from
+  origin: String!
+  baked_at: google.protobuf.Timestamp!
+}
+
+input PizzaInput {
+  # How the pizza is usually called
+  title: String!
+  # Where the pizza is from
+  origin: String!
+  baked_at: google.protobuf.Timestamp!
+}
+
+# Describes a Pizza topping
 type Topping {
   name: String!
   # Is it sweet?
@@ -191,27 +209,10 @@ type Topping {
   sweet: Boolean!
 }
 
+# Describes a Pizza topping
 input ToppingInput {
   name: String!
   # Is it sweet?
   # ...or what
   sweet: Boolean!
-}
-
-# A pizza, with toppings and stuff
-type Pizza {
-  title: String!
-  # How the pizza is usually called
-  # Where the pizza is from
-  origin: String!
-  baked_at: .google.protobuf.Timestamp!
-}
-
-# A pizza, with toppings and stuff
-input PizzaInput {
-  title: String!
-  # How the pizza is usually called
-  # Where the pizza is from
-  origin: String!
-  baked_at: .google.protobuf.Timestamp!
 }
