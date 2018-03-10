@@ -84,7 +84,7 @@ fn message_type_to_gql(
     message_type_index: usize,
     source_info: &SourceCodeInfo,
     package_name: &str,
-) -> ObjectType {
+) -> (ObjectType, Vec<EnumType>) {
     let description: String = source_info
         .get_location()
         .iter()
@@ -104,7 +104,7 @@ fn message_type_to_gql(
             message.get_name()
         ).to_string()
     };
-    ObjectType {
+    let object = ObjectType {
         name,
         fields,
         description: if description.is_empty() {
@@ -112,7 +112,15 @@ fn message_type_to_gql(
         } else {
             Some(description)
         },
-    }
+    };
+
+    let enums = message
+        .get_enum_type()
+        .iter()
+        .map(|e| EnumType::from(e))
+        .collect();
+
+    (object, enums)
 }
 
 struct GqlTypeDefs {
@@ -145,6 +153,10 @@ impl GqlTypeDefs {
 
 impl ::std::fmt::Display for GqlTypeDefs {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        for e in self.enums.iter() {
+            write!(formatter, "{}\n\n", e)?;
+        }
+
         for object in self.objects.iter() {
             write!(formatter, "{}\n\n", object)?;
             // TODO: Generate only the input types required by the generated services
@@ -213,12 +225,16 @@ pub fn gen(
             }
 
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
-                type_defs.push_object(message_type_to_gql(
+                let (object, enums) = message_type_to_gql(
                     message_type,
                     idx,
                     descriptor.get_source_code_info(),
                     descriptor.get_package(),
-                ));
+                );
+                type_defs.push_object(object);
+                for e in enums.into_iter() {
+                    type_defs.push_enum(e);
+                }
             }
         }
 

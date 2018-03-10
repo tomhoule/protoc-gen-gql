@@ -5,7 +5,7 @@
     - [x] Primitive types
     - [x] Messages → Object/Input types
     - [x] Repeated fields
-    - [ ] Enums
+    - [x] Enums
     - [ ] `oneof`
     - [ ] Maps
     - [x] Protobuf modules and imports

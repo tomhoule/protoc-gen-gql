@@ -1,7 +1,6 @@
 use gen;
 
 use protobuf::descriptor::*;
-use protobuf::descriptorx::*;
 use protobuf::compiler_plugin::GenResult;
 use protobuf::repeated::RepeatedField;
 
