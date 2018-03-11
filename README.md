@@ -4,8 +4,9 @@
 - [x] GraphQL schema generation
     - [x] Primitive types
     - [x] Messages → Object/Input types
-    - [x] Repeated fields
+    - [x] Repeated fields as arrays
     - [x] Enums
+    - [ ] Nested messages
     - [ ] `oneof`
     - [ ] Maps
     - [x] Protobuf modules and imports
@@ -29,6 +30,7 @@ Maybe in the future:
 ### Standalone JS server
 
 - Use the plugin to generate the whole project in a directory
+- Provide the location of your GRPC services as environment variables of the form `<MY_SERVICE_NAME>_UPSTREAM=rpc.example.com:443` (port is optional)
 
 ### JS modules
 

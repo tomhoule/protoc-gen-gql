@@ -32,26 +32,22 @@ fn proto_field_type_to_gql_type(
 
 fn fields_to_gql(
     fields: &[FieldDescriptorProto],
-    message_type_index: usize,
     source_info: &SourceCodeInfo,
+    path_prefix: &[i32],
 ) -> Vec<Field> {
     fields
         .iter()
         .map(|f| {
+            let mut full_path = path_prefix.to_owned();
+            full_path.push(2); // it's a field
+            full_path.push(f.get_number() - 1); // that field
+
             let comment: String = source_info
                 .get_location()
                 .iter()
                 .filter(|loc| {
                     // https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/DescriptorProtos.SourceCodeInfo.Location#getPath-int-
-                    let path = loc.get_path();
-                    // It's in a message
-                    path.get(0) == Some(&4) &&
-                    // That message
-                    path.get(1) == Some(&(message_type_index as i32)) &&
-                    // It's in a field
-                    path.get(2) == Some(&2) &&
-                    // That field
-                    path.get(3) == Some(&(f.get_number() - 1))
+                    loc.get_path() == full_path.as_slice()
                 })
                 .map(|loc| {
                     format!(
@@ -81,20 +77,17 @@ fn fields_to_gql(
 
 fn message_type_to_gql(
     message: &DescriptorProto,
-    message_type_index: usize,
     source_info: &SourceCodeInfo,
+    path_prefix: &[i32],
     package_name: &str,
 ) -> (ObjectType, Vec<EnumType>) {
     let description: String = source_info
         .get_location()
         .iter()
-        .filter(|loc| {
-            let path = loc.get_path();
-            path.get(1) == Some(&(message_type_index as i32)) && path.get(2) == None
-        })
+        .filter(|loc| loc.get_path() == path_prefix)
         .map(|loc| loc.get_leading_comments())
         .collect();
-    let fields = fields_to_gql(message.get_field(), message_type_index, source_info);
+    let fields = fields_to_gql(message.get_field(), source_info, path_prefix);
     let name = if package_name.is_empty() {
         message.get_name().to_string()
     } else {
@@ -227,8 +220,8 @@ pub fn gen(
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
                 let (object, enums) = message_type_to_gql(
                     message_type,
-                    idx,
                     descriptor.get_source_code_info(),
+                    vec![4, idx as i32].as_slice(),
                     descriptor.get_package(),
                 );
                 type_defs.push_object(object);
