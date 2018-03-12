@@ -108,7 +108,17 @@ fn message_type_to_gql(
         },
     };
 
-    for e in message.get_enum_type().iter().map(|e| EnumType::from(e)) {
+    for e in message
+        .get_enum_type()
+        .iter()
+        .enumerate()
+        .map(|(idx, e)| {
+            let mut full_path = path_prefix.to_owned();
+            full_path.push(4); // this is an enum
+            full_path.push(idx as i32);
+            EnumType::from_proto(e, source_info, &full_path)
+        })
+    {
         gql_type_defs.push_enum(e);
     }
 

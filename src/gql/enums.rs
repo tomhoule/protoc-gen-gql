@@ -1,18 +1,44 @@
-use protobuf::descriptor::EnumDescriptorProto;
+use protobuf::descriptor::{EnumDescriptorProto, SourceCodeInfo};
 
-// TODO: doc comments
-pub struct EnumType {
-    name: String,
-    values: Vec<String>,
+pub struct EnumField {
+    pub name: String,
+    pub description: String,
 }
 
-impl<'a> From<&'a EnumDescriptorProto> for EnumType {
-    fn from(src: &EnumDescriptorProto) -> EnumType {
+pub struct EnumType {
+    description: String,
+    name: String,
+    values: Vec<EnumField>,
+}
+
+impl EnumType {
+    pub fn from_proto(
+        src: &EnumDescriptorProto,
+        source_info: &SourceCodeInfo,
+        root_path: &[i32],
+    ) -> EnumType {
+        let description: String = source_info
+            .get_location()
+            .iter()
+            .filter(|loc| loc.get_path() == root_path)
+            .map(|loc| loc.get_leading_comments())
+            .collect();
         EnumType {
+            description,
             name: src.get_name().to_string(),
             values: src.get_value()
                 .iter()
-                .map(|v| v.get_name().to_string())
+                .enumerate()
+                .map(|(idx, v)| {
+                    let name = v.get_name().to_string();
+                    let mut full_path = root_path.to_owned();
+                    full_path.push(idx as i32);
+                    let description = source_info.get_location().iter().filter(|loc| loc.get_path() == full_path.as_slice()).map(|loc| format!("{}{}", loc.get_leading_comments(), loc.get_trailing_comments())).collect();
+                    EnumField {
+                        name,
+                        description,
+                    }
+                })
                 .collect(),
         }
     }
@@ -20,9 +46,15 @@ impl<'a> From<&'a EnumDescriptorProto> for EnumType {
 
 impl ::std::fmt::Display for EnumType {
     fn fmt(&self, formatter: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        for line in self.description.lines() {
+            write!(formatter, "#{}\n", line)?;
+        }
         write!(formatter, "enum {} {{\n", self.name)?;
         for v in self.values.iter() {
-            write!(formatter, "  {}\n", v)?;
+            for line in v.description.lines() {
+                write!(formatter, "#{}\n", line)?;
+            }
+            write!(formatter, "  {}\n", v.name)?;
         }
         write!(formatter, "}}")
     }

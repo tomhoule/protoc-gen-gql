@@ -1,3 +1,4 @@
+# Choose the right one
 enum Sauce {
   TOMATO
   CREAM
@@ -6,6 +7,7 @@ enum Sauce {
   BARBECUE
 }
 
+# TODO: see with a doctor
 enum FatType {
   UNKNOWN
   GOOD
@@ -238,12 +240,14 @@ input ToppingInput {
 
 # What's the fat content of this topping, for people who care
 type ToppingFatContent {
+  # How much, out of 100
   percentage: Int!
   type: ToppingFatContentFatType!
 }
 
 # What's the fat content of this topping, for people who care
 input ToppingFatContentInput {
+  # How much, out of 100
   percentage: Int
   type: ToppingFatContentFatType
 }

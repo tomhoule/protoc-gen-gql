@@ -42,6 +42,7 @@ message Topping {
             BAD = 2;
         }
 
+        // How much, out of 100
         int32 percentage = 1;
         FatType type = 2;
     }
