@@ -9,8 +9,10 @@ service Pizzeria {
 
 // A pizza, with toppings and stuff
 message Pizza {
+    // Choose the right one
     enum Sauce {
         TOMATO = 0;
+        // Congratulations, you have good taste
         CREAM = 1;
         WITHOUT = 2;
         JAM = 3;
@@ -30,6 +32,20 @@ message Pizza {
 
 // Describes a Pizza topping
 message Topping {
+    // What's the fat content of this topping, for people who care
+    message FatContent {
+        // TODO: see with a doctor
+        enum FatType {
+            UNKNOWN = 0;
+            // Like avocado
+            GOOD = 1;
+            BAD = 2;
+        }
+
+        int32 percentage = 1;
+        FatType type = 2;
+    }
+
     string name = 1;
     // Is it sweet?
     // ...or what

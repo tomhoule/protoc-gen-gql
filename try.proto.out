@@ -6,6 +6,12 @@ enum Sauce {
   BARBECUE
 }
 
+enum FatType {
+  UNKNOWN
+  GOOD
+  BAD
+}
+
 # A Timestamp represents a point in time independent of any time zone
 # or calendar, represented as seconds and fractions of seconds at
 # nanosecond resolution in UTC Epoch time. It is encoded using the
@@ -228,6 +234,18 @@ input ToppingInput {
   # ...or what
   sweet: Boolean
   vitamins: [String]
+}
+
+# What's the fat content of this topping, for people who care
+type ToppingFatContent {
+  percentage: Int!
+  type: ToppingFatContentFatType!
+}
+
+# What's the fat content of this topping, for people who care
+input ToppingFatContentInput {
+  percentage: Int
+  type: ToppingFatContentFatType
 }
 
 type PizzeriaService {

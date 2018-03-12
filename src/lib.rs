@@ -80,7 +80,8 @@ fn message_type_to_gql(
     source_info: &SourceCodeInfo,
     path_prefix: &[i32],
     package_name: &str,
-) -> (ObjectType, Vec<EnumType>) {
+    gql_type_defs: &mut GqlTypeDefs,
+) {
     let description: String = source_info
         .get_location()
         .iter()
@@ -107,13 +108,27 @@ fn message_type_to_gql(
         },
     };
 
-    let enums = message
-        .get_enum_type()
-        .iter()
-        .map(|e| EnumType::from(e))
-        .collect();
+    for e in message.get_enum_type().iter().map(|e| EnumType::from(e)) {
+        gql_type_defs.push_enum(e);
+    }
 
-    (object, enums)
+    gql_type_defs.push_object(object);
+
+    for (idx, nested_message) in message.get_nested_type().iter().enumerate() {
+        let mut nested_path_prefix = path_prefix.to_owned();
+        nested_path_prefix.push(3); // nested messages are the third field on message, see https://github.com/google/protobuf/blob/master/src/google/protobuf/descriptor.proto
+        nested_path_prefix.push(idx as i32);
+        let mut nested_message = nested_message.clone();
+        let name = nested_message.get_name().to_string();
+        nested_message.set_name(format!("{}{}", message.get_name(), name));
+        message_type_to_gql(
+            &nested_message,
+            source_info,
+            &nested_path_prefix,
+            package_name,
+            gql_type_defs,
+        );
+    }
 }
 
 struct GqlTypeDefs {
@@ -218,16 +233,13 @@ pub fn gen(
             }
 
             for (idx, message_type) in descriptor.get_message_type().iter().enumerate() {
-                let (object, enums) = message_type_to_gql(
+                message_type_to_gql(
                     message_type,
                     descriptor.get_source_code_info(),
                     vec![4, idx as i32].as_slice(),
                     descriptor.get_package(),
+                    &mut type_defs,
                 );
-                type_defs.push_object(object);
-                for e in enums.into_iter() {
-                    type_defs.push_enum(e);
-                }
             }
         }
 
