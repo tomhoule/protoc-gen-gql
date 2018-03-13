@@ -56,17 +56,17 @@ impl GqlTypeDefs {
         let mut all_exports: Vec<String> = Vec::new();
 
         for e in self.enums.iter() {
-            write!(out, "export const {} = `\n{}\n`\n\n", e.name, e)?;
+            write!(out, "export const {} = `\n{}\n`\n\n", e.name, e.to_string().replace('`', r"\`"))?;
             all_exports.push(e.name.to_string());
         }
 
         for object in self.objects.iter() {
-            write!(out, "export const {} = `\n{}\n`\n\n", object.name, object)?;
+            write!(out, "export const {} = `\n{}\n`\n\n", object.name, object.to_string().replace('`', r"\`"))?;
             all_exports.push(object.name.to_string());
         }
 
         for service in self.services.iter() {
-            write!(out, "export const {} = `\n{}\n`\n\n", service.name, service)?;
+            write!(out, "export const {} = `\n{}\n`\n\n", service.name, service.to_string().replace('`', r"\`"))?;
             all_exports.push(service.name.to_string());
         }
 
