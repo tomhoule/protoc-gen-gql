@@ -6,9 +6,9 @@ pub struct EnumField {
 }
 
 pub struct EnumType {
-    description: String,
-    name: String,
-    values: Vec<EnumField>,
+    pub description: String,
+    pub name: String,
+    pub values: Vec<EnumField>,
 }
 
 impl EnumType {

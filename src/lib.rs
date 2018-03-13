@@ -194,6 +194,11 @@ pub fn gen(
             name: format!("{}.out", file_name),
             content,
         });
+
+        results.push(GenResult {
+            name: format!("{}.js", file_name),
+            content: type_defs.render_js_module().unwrap().into_bytes(),
+        });
     }
 
     // for file_name in files_to_generate {
