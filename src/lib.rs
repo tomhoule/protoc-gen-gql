@@ -112,7 +112,7 @@ fn message_type_to_gql(
         let mut full_path = path_prefix.to_owned();
         full_path.push(4); // this is an enum
         full_path.push(idx as i32);
-        EnumType::from_proto(e, source_info, &full_path)
+        EnumType::from_proto(e, source_info, &full_path, Some(message.get_name()))
     }) {
         gql_type_defs.push_enum(e);
     }
@@ -245,6 +245,15 @@ pub fn gen(
                     descriptor.get_package(),
                     &mut type_defs,
                 );
+            }
+
+            for (idx, e) in descriptor.get_enum_type().iter().enumerate() {
+                type_defs.push_enum(EnumType::from_proto(
+                    e,
+                    descriptor.get_source_code_info(),
+                    vec![5, idx as i32].as_slice(),
+                    None,
+                ));
             }
         }
 

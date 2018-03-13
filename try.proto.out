@@ -1,5 +1,5 @@
 # Choose the right one
-enum Sauce {
+enum PizzaSauce {
   TOMATO
   # Congratulations, you have good taste
   CREAM
@@ -9,11 +9,18 @@ enum Sauce {
 }
 
 # TODO: see with a doctor
-enum FatType {
+enum ToppingFatContentFatType {
   UNKNOWN
   # Like avocado
   GOOD
   BAD
+}
+
+# A top level enum
+enum TopLevelEnum {
+  UNKNOWN
+  TOP
+  LEVEL
 }
 
 # A Timestamp represents a point in time independent of any time zone

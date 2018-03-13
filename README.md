@@ -6,7 +6,7 @@
     - [x] Messages → Object/Input types
     - [x] Repeated fields as arrays
     - [x] Enums
-    - [ ] Nested messages
+    - [x] Nested messages
     - [ ] `oneof`
     - [ ] Maps
     - [x] Protobuf modules and imports

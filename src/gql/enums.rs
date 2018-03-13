@@ -16,6 +16,7 @@ impl EnumType {
         src: &EnumDescriptorProto,
         source_info: &SourceCodeInfo,
         root_path: &[i32],
+        name_prefix: Option<&str>,
     ) -> EnumType {
         let description: String = source_info
             .get_location()
@@ -25,7 +26,7 @@ impl EnumType {
             .collect();
         EnumType {
             description,
-            name: src.get_name().to_string(),
+            name: format!("{}{}", name_prefix.unwrap_or(""), src.get_name()),
             values: src.get_value()
                 .iter()
                 .enumerate()

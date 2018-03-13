@@ -56,3 +56,9 @@ message Topping {
     repeated string vitamins = 3;
 }
 
+// A top level enum
+enum TopLevelEnum {
+    UNKNOWN = 0;
+    TOP = 1;
+    LEVEL = 2;
+}
