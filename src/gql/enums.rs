@@ -32,12 +32,20 @@ impl EnumType {
                 .map(|(idx, v)| {
                     let name = v.get_name().to_string();
                     let mut full_path = root_path.to_owned();
-                    full_path.push(idx as i32);
-                    let description = source_info.get_location().iter().filter(|loc| loc.get_path() == full_path.as_slice()).map(|loc| format!("{}{}", loc.get_leading_comments(), loc.get_trailing_comments())).collect();
-                    EnumField {
-                        name,
-                        description,
-                    }
+                    full_path.push((idx + 1) as i32);
+                    let description = source_info
+                        .get_location()
+                        .iter()
+                        .filter(|loc| loc.get_path().starts_with(full_path.as_slice()))
+                        .map(|loc| {
+                            format!(
+                                "{}{}",
+                                loc.get_leading_comments(),
+                                loc.get_trailing_comments()
+                            )
+                        })
+                        .collect();
+                    EnumField { name, description }
                 })
                 .collect(),
         }
@@ -52,7 +60,7 @@ impl ::std::fmt::Display for EnumType {
         write!(formatter, "enum {} {{\n", self.name)?;
         for v in self.values.iter() {
             for line in v.description.lines() {
-                write!(formatter, "#{}\n", line)?;
+                write!(formatter, "  #{}\n", line)?;
             }
             write!(formatter, "  {}\n", v.name)?;
         }

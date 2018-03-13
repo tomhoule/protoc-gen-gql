@@ -1,6 +1,7 @@
 # Choose the right one
 enum Sauce {
   TOMATO
+  # Congratulations, you have good taste
   CREAM
   WITHOUT
   JAM
@@ -10,6 +11,7 @@ enum Sauce {
 # TODO: see with a doctor
 enum FatType {
   UNKNOWN
+  # Like avocado
   GOOD
   BAD
 }

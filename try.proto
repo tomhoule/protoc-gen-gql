@@ -2,7 +2,9 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
+// A place where pizza is made.
 service Pizzeria {
+  // Make a pizza with *one* topping. Boring.
   rpc MakeSimplePizza (Topping) returns (Pizza);
 }
 
