@@ -5,6 +5,7 @@ extern crate regex;
 #[cfg(test)]
 mod gen_tests;
 mod gql;
+mod js;
 mod support;
 
 use gql::*;
@@ -196,7 +197,7 @@ pub fn gen(
         });
 
         results.push(GenResult {
-            name: format!("{}.js", file_name),
+            name: format!("{}-type-defs.js", file_name),
             content: type_defs.render_js_module().unwrap().into_bytes(),
         });
     }
