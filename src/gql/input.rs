@@ -20,7 +20,7 @@ impl ::std::fmt::Display for InputType {
 impl ::std::convert::From<ObjectType> for InputType {
     fn from(input: ObjectType) -> InputType {
         InputType {
-            name: input.name,
+            name: input.name.clone(),
             fields: input
                 .fields
                 .iter()
@@ -29,7 +29,7 @@ impl ::std::convert::From<ObjectType> for InputType {
                     ..f.clone()
                 })
                 .collect(),
-            description: input.description,
+            description: input.description.clone(),
         }
     }
 }

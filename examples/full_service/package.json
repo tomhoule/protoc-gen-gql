@@ -1,0 +1,15 @@
+{
+  "name": "protoc-gen-gql",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:tomhoule/protoc-gen-gql.git",
+  "author": "Tom Houlé <tom@tomhoule.com>",
+  "license": "MIT",
+  "scripts": {
+      "start": "tsc && node server.js"
+  },
+  "dependencies": {
+    "graphql-yoga": "^1.5.2",
+    "typescript": "^2.7.2"
+  }
+}

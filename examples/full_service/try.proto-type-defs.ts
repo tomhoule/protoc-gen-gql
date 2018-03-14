@@ -1,6 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PizzaSauce = `
+export const PizzaSauce = `
 # Choose the right one
 enum PizzaSauce {
   TOMATO
@@ -10,8 +8,9 @@ enum PizzaSauce {
   JAM
   BARBECUE
 }
-`;
-exports.ToppingFatContentFatType = `
+`
+
+export const ToppingFatContentFatType = `
 # TODO: see with a doctor
 enum ToppingFatContentFatType {
   UNKNOWN
@@ -19,16 +18,18 @@ enum ToppingFatContentFatType {
   GOOD
   BAD
 }
-`;
-exports.TopLevelEnum = `
+`
+
+export const TopLevelEnum = `
 # A top level enum
 enum TopLevelEnum {
   UNKNOWN
   TOP
   LEVEL
 }
-`;
-exports.GoogleProtobufTimestamp = `
+`
+
+export const GoogleProtobufTimestamp = `
 # A Timestamp represents a point in time independent of any time zone
 # or calendar, represented as seconds and fractions of seconds at
 # nanosecond resolution in UTC Epoch time. It is encoded using the
@@ -118,8 +119,9 @@ type GoogleProtobufTimestamp {
   # inclusive.
   nanos: Int!
 }
-`;
-exports.GoogleProtobufTimestampInput = `
+`
+
+export const GoogleProtobufTimestampInput = `
 # A Timestamp represents a point in time independent of any time zone
 # or calendar, represented as seconds and fractions of seconds at
 # nanosecond resolution in UTC Epoch time. It is encoded using the
@@ -209,8 +211,9 @@ input GoogleProtobufTimestampInput {
   # inclusive.
   nanos: Int
 }
-`;
-exports.Pizza = `
+`
+
+export const Pizza = `
 # A pizza, with toppings and stuff
 type Pizza {
   # How the pizza is usually called
@@ -223,8 +226,9 @@ type Pizza {
   # Right or wrong sauce
   sauce: PizzaSauce!
 }
-`;
-exports.PizzaInput = `
+`
+
+export const PizzaInput = `
 # A pizza, with toppings and stuff
 input PizzaInput {
   # How the pizza is usually called
@@ -237,8 +241,9 @@ input PizzaInput {
   # Right or wrong sauce
   sauce: PizzaSauce
 }
-`;
-exports.Topping = `
+`
+
+export const Topping = `
 # Describes a Pizza topping
 type Topping {
   name: String!
@@ -247,8 +252,9 @@ type Topping {
   sweet: Boolean!
   vitamins: [String]!
 }
-`;
-exports.ToppingInput = `
+`
+
+export const ToppingInput = `
 # Describes a Pizza topping
 input ToppingInput {
   name: String
@@ -257,59 +263,65 @@ input ToppingInput {
   sweet: Boolean
   vitamins: [String]
 }
-`;
-exports.ToppingFatContent = `
+`
+
+export const ToppingFatContent = `
 # What's the fat content of this topping, for people who care
 type ToppingFatContent {
   # How much, out of 100
   percentage: Int!
   type: ToppingFatContentFatType!
 }
-`;
-exports.ToppingFatContentInput = `
+`
+
+export const ToppingFatContentInput = `
 # What's the fat content of this topping, for people who care
 input ToppingFatContentInput {
   # How much, out of 100
   percentage: Int
   type: ToppingFatContentFatType
 }
-`;
-exports.Pizzeria = `
+`
+
+export const Pizzeria = `
 type PizzeriaService {
   makeSimplePizza(topping: ToppingInput!): Pizza!
 }
-`;
-exports.Query = `
+`
+
+export const Query = `
 type Query {
   pizzeria: PizzeriaService!
 }
-`;
-exports.typeDefsWithoutQuery = [
-    exports.PizzaSauce,
-    exports.ToppingFatContentFatType,
-    exports.TopLevelEnum,
-    exports.GoogleProtobufTimestamp,
-    exports.GoogleProtobufTimestampInput,
-    exports.Pizza,
-    exports.PizzaInput,
-    exports.Topping,
-    exports.ToppingInput,
-    exports.ToppingFatContent,
-    exports.ToppingFatContentInput,
-    exports.Pizzeria,
-];
-exports.typeDefs = [
-    exports.PizzaSauce,
-    exports.ToppingFatContentFatType,
-    exports.TopLevelEnum,
-    exports.GoogleProtobufTimestamp,
-    exports.GoogleProtobufTimestampInput,
-    exports.Pizza,
-    exports.PizzaInput,
-    exports.Topping,
-    exports.ToppingInput,
-    exports.ToppingFatContent,
-    exports.ToppingFatContentInput,
-    exports.Pizzeria,
-    exports.Query,
-];
+`
+
+export const typeDefsWithoutQuery = [
+  PizzaSauce,
+  ToppingFatContentFatType,
+  TopLevelEnum,
+  GoogleProtobufTimestamp,
+  GoogleProtobufTimestampInput,
+  Pizza,
+  PizzaInput,
+  Topping,
+  ToppingInput,
+  ToppingFatContent,
+  ToppingFatContentInput,
+  Pizzeria,
+]
+
+export const typeDefs = [
+  PizzaSauce,
+  ToppingFatContentFatType,
+  TopLevelEnum,
+  GoogleProtobufTimestamp,
+  GoogleProtobufTimestampInput,
+  Pizza,
+  PizzaInput,
+  Topping,
+  ToppingInput,
+  ToppingFatContent,
+  ToppingFatContentInput,
+  Pizzeria,
+  Query,
+]
