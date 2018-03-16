@@ -101,5 +101,17 @@ fn empty_proto_source_file() {
         .source_file(file)
         .target_file("meh")
         .expect("meh.out", "")
+        .expect("meh.js", r##"export const Query = `
+type Query {
+}
+`
+export const typeDefsWithoutQuery = [
+]
+
+export const typeDefs = [
+  Query,
+]
+
+`"##)
         .unwrap();
 }

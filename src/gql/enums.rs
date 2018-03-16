@@ -77,7 +77,12 @@ mod tests {
     fn enum_type_display() {
         let my_enum = EnumType {
             name: "Color".to_string(),
-            values: vec!["red".into(), "green".into(), "blue".into()],
+            description: "".to_string(),
+            values: vec![
+                EnumField { name: "red".into(), description: "".to_string() },
+                EnumField { name: "green".into(), description: "".to_string() },
+                EnumField { name: "blue".into(), description: "".to_string() },
+            ],
         };
 
         assert_eq!(
