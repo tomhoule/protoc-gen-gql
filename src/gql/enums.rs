@@ -79,9 +79,18 @@ mod tests {
             name: "Color".to_string(),
             description: "".to_string(),
             values: vec![
-                EnumField { name: "red".into(), description: "".to_string() },
-                EnumField { name: "green".into(), description: "".to_string() },
-                EnumField { name: "blue".into(), description: "".to_string() },
+                EnumField {
+                    name: "red".into(),
+                    description: "".to_string(),
+                },
+                EnumField {
+                    name: "green".into(),
+                    description: "".to_string(),
+                },
+                EnumField {
+                    name: "blue".into(),
+                    description: "".to_string(),
+                },
             ],
         };
 
