@@ -1,10 +1,9 @@
+/// import * as
 
-/// import * as 
-
-/// 
+///
 /// export const resolvers = {
 ///   Query: {
-///  for service in services for query in query 
+///  for service in services for query in query
 /// makeSimplePizza = async (message: ToppingInput) => {
 ///   const topping = new proto.Topping()
 ///   topping.setFatContent(message.fatContent)

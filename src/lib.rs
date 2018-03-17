@@ -2,8 +2,8 @@ extern crate heck;
 extern crate protobuf;
 extern crate regex;
 
-#[cfg(test)]
-mod gen_tests;
+// #[cfg(test)]
+// mod gen_tests;
 mod gql;
 mod js;
 mod support;
