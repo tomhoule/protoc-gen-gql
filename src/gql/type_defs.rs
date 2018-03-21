@@ -111,6 +111,46 @@ impl GqlTypeDefs {
 
         Ok(out)
     }
+
+    pub fn render_resolvers(&self) -> Result<String, ::std::fmt::Error> {
+        use std::fmt::Write;
+
+        let mut out = String::new();
+        write!(out, "import * as grpc from 'grpc'\n")?;
+        write!(out, "import * as services from './services'\n\n")?;
+
+        for service in self.services.iter() {
+            write!(
+                out,
+                "const {}Stub = new services.{}(process.env.{}_BACKEND_URL, grpc.credentials.createInsecure())\n\n",
+                service.name, service.name, service.name.TO_SHOUTY_SNEK_CASE()
+            )?;
+        }
+
+        write!(out, "const resolvers = {{\n  Query: {{\n")?;
+
+        for service in self.services.iter() {
+            write!(out, "    {}: {{\n", service.name.to_mixed_case());
+            for method in service.methods.iter() {
+                write!(
+                    out,
+                    "      {}: async (req: any) => {{
+        const res = await {}Stub.call(services.{}.{}, req)
+        return res.toJson()
+      }},\n",
+                    method.get_name().to_mixed_case(),
+                    service.name,
+                    service.name,
+                    method.get_name(),
+                );
+            }
+            write!(out, "    }},\n");
+        }
+
+        write!(out, "  }},\n}}")?;
+
+        Ok(out)
+    }
 }
 
 impl ::std::fmt::Display for GqlTypeDefs {

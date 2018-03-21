@@ -197,8 +197,13 @@ pub fn gen(
         });
 
         results.push(GenResult {
-            name: format!("{}-type-defs.js", file_name),
+            name: format!("{}-type-defs.ts", file_name),
             content: type_defs.render_js_module().unwrap().into_bytes(),
+        });
+
+        results.push(GenResult {
+            name: format!("{}-resolvers.ts", file_name),
+            content: type_defs.render_resolvers().unwrap().into_bytes(),
         });
     }
 
