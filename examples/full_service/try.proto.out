@@ -263,6 +263,7 @@ input ToppingFatContentInput {
 
 type PizzeriaService {
   makeSimplePizza(topping: ToppingInput!): Pizza!
+  observePizzas(topping: ToppingInput!): Pizza!
 }
 
 type Query {

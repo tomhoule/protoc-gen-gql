@@ -286,6 +286,7 @@ input ToppingFatContentInput {
 const Pizzeria = `
 type PizzeriaService {
   makeSimplePizza(topping: ToppingInput!): Pizza!
+  observePizzas(topping: ToppingInput!): Pizza!
 }
 `
 

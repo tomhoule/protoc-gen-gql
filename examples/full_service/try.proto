@@ -6,6 +6,8 @@ import "google/protobuf/timestamp.proto";
 service Pizzeria {
   // Make a pizza with *one* topping. Boring.
   rpc MakeSimplePizza (Topping) returns (Pizza);
+  // Observe the stream of pizzas leaving the oven
+  rpc ObservePizzas (Topping) returns (stream Pizza);
 }
 
 
