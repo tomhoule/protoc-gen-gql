@@ -1,6 +1,6 @@
+use heck::*;
 use protobuf::descriptor::*;
 use support;
-use heck::*;
 
 #[derive(Debug, Clone)]
 pub struct Field {

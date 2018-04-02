@@ -5,4 +5,3 @@ try-codegen:
       --apollo_out=. \
       *.proto
 
-

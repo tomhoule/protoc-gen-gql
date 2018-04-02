@@ -14,8 +14,8 @@ use std::collections::HashMap;
 
 use heck::*;
 
-use protobuf::compiler_plugin;
 use protobuf::code_writer::CodeWriter;
+use protobuf::compiler_plugin;
 use protobuf::compiler_plugin::GenResult;
 use protobuf::descriptor::*;
 
@@ -165,6 +165,7 @@ pub fn gen(
                 let service = Service {
                     name: proto_service.get_name().to_string(),
                     methods: proto_service.get_method().into(),
+                    origin_file_name: descriptor.get_name().to_string(),
                 };
                 type_defs.push_service(service);
             }
@@ -197,25 +198,15 @@ pub fn gen(
         });
 
         results.push(GenResult {
-            name: format!("{}-type-defs.ts", file_name),
+            name: format!("{}-type-defs.js", file_name),
             content: type_defs.render_js_module().unwrap().into_bytes(),
         });
 
         results.push(GenResult {
-            name: format!("{}-resolvers.ts", file_name),
+            name: format!("{}-resolvers.js", file_name),
             content: type_defs.render_resolvers().unwrap().into_bytes(),
         });
     }
-
-    // for file_name in files_to_generate {
-    //     let file = files_map[&file_name[..]];
-
-    //     if file.get_service().is_empty() {
-    //         continue;
-    //     }
-
-    //     results.extend(gen_file(file, &root_scope).into_iter());
-    // }
 
     results
 }

@@ -1,10 +1,12 @@
-use protobuf::descriptor::*;
 use heck::*;
+use protobuf::descriptor::*;
 
 #[derive(Debug, Clone)]
 pub struct Service {
     pub name: String,
     pub methods: Vec<MethodDescriptorProto>,
+    /// Which file it comes from
+    pub origin_file_name: String,
 }
 
 impl ::std::fmt::Display for Service {

@@ -1,6 +1,6 @@
 use gql::{EnumType, Field, FieldType, InputType, ObjectType, Service};
-use protobuf::descriptor::*;
 use heck::*;
+use protobuf::descriptor::*;
 
 pub struct GqlTypeDefs {
     objects: Vec<ObjectType>,
@@ -58,7 +58,7 @@ impl GqlTypeDefs {
         for e in self.enums.iter() {
             write!(
                 out,
-                "export const {} = `\n{}\n`\n\n",
+                "const {} = `\n{}\n`\n\n",
                 e.name,
                 e.to_string().replace('`', r"\`")
             )?;
@@ -68,7 +68,7 @@ impl GqlTypeDefs {
         for object in self.objects.iter() {
             write!(
                 out,
-                "export const {} = `\n{}\n`\n\n",
+                "const {} = `\n{}\n`\n\n",
                 object.name,
                 object.to_string().replace('`', r"\`")
             )?;
@@ -76,7 +76,7 @@ impl GqlTypeDefs {
             let input = InputType::from(object.clone());
             write!(
                 out,
-                "export const {}Input = `\n{}\n`\n\n",
+                "const {}Input = `\n{}\n`\n\n",
                 input.name,
                 input.to_string().replace('`', r"\`")
             )?;
@@ -86,7 +86,7 @@ impl GqlTypeDefs {
         for service in self.services.iter() {
             write!(
                 out,
-                "export const {} = `\n{}\n`\n\n",
+                "const {} = `\n{}\n`\n\n",
                 service.name,
                 service.to_string().replace('`', r"\`")
             )?;
@@ -94,15 +94,15 @@ impl GqlTypeDefs {
         }
 
         let query = self.synthetize_query();
-        write!(out, "export const {} = `\n{}\n`\n\n", query.name, query)?;
+        write!(out, "const {} = `\n{}\n`\n\n", query.name, query)?;
 
-        write!(out, "export const typeDefsWithoutQuery = [\n")?;
-        for export in all_exports.iter() {
-            write!(out, "  {},\n", export)?;
-        }
-        write!(out, "]\n\n")?;
+        // write!(out, "const typeDefsWithoutQuery = [\n")?;
+        // for export in all_exports.iter() {
+        //     write!(out, "  {},\n", export)?;
+        // }
+        // write!(out, "]\n\n")?;
 
-        write!(out, "export const typeDefs = [\n")?;
+        write!(out, "module.exports = [\n")?;
         for export in all_exports.iter() {
             write!(out, "  {},\n", export)?;
         }
@@ -115,36 +115,50 @@ impl GqlTypeDefs {
     pub fn render_resolvers(&self) -> Result<String, ::std::fmt::Error> {
         use std::fmt::Write;
 
+        let proto_file_names: ::std::collections::HashSet<String> = self.services
+            .iter()
+            .map(|service| service.origin_file_name.clone())
+            .collect();
+
         let mut out = String::new();
-        write!(out, "import * as grpc from 'grpc'\n")?;
-        write!(out, "import * as services from './services'\n\n")?;
+        write!(out, "const grpc = require('grpc')\n")?;
+
+        for proto_file_name in proto_file_names.iter() {
+            write!(
+                out,
+                "const {} = grpc.load('./{}')\n\n",
+                proto_file_name.to_camel_case().replace(".proto", ""),
+                proto_file_name
+            )?;
+        }
 
         for service in self.services.iter() {
             write!(
                 out,
-                "const {}Stub = new services.{}(process.env.{}_BACKEND_URL, grpc.credentials.createInsecure())\n\n",
-                service.name, service.name, service.name.TO_SHOUTY_SNEK_CASE()
+                "const {}Stub = new {}.{}(process.env.{}_BACKEND_URL, grpc.credentials.createInsecure())\n\n",
+                service.name,
+                service.origin_file_name.to_camel_case().replace(".proto", ""),
+                 service.name, service.name.TO_SHOUTY_SNEK_CASE()
             )?;
         }
 
-        write!(out, "const resolvers = {{\n  Query: {{\n")?;
+        write!(out, "module.exports = {{\n  Query: {{\n")?;
 
         for service in self.services.iter() {
-            write!(out, "    {}: {{\n", service.name.to_mixed_case());
+            write!(out, "    {}: () => ({{\n", service.name.to_mixed_case())?;
             for method in service.methods.iter() {
                 write!(
                     out,
-                    "      {}: async (req: any) => {{
-        const res = await {}Stub.call(services.{}.{}, req)
-        return res.toJson()
+                    "      {}: ({{ {}, req }}) => {{
+        return new Promise((resolve, reject) => {}Stub.{}({{...req}}, (err, res) => err ? reject(err) : resolve(res)))
       }},\n",
                     method.get_name().to_mixed_case(),
-                    service.name,
+                    method.get_input_type().to_snake_case(),
                     service.name,
                     method.get_name(),
-                );
+                )?;
             }
-            write!(out, "    }},\n");
+            write!(out, "    }}),\n")?;
         }
 
         write!(out, "  }},\n}}")?;
