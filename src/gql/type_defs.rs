@@ -29,6 +29,26 @@ impl GqlTypeDefs {
         self.enums.push(enum_)
     }
 
+    pub fn synthetize_subscription(&self) -> ObjectType {
+        ObjectType {
+            name: "Subscription".to_string(),
+            description: None,
+            fields: self.services
+                .iter()
+                .map(|s| Field {
+                    name: s.name.to_mixed_case(),
+                    description: None,
+                    required: true,
+                    type_: FieldType {
+                        proto_type: FieldDescriptorProto_Type::TYPE_MESSAGE,
+                        type_name: format!("{}ServiceSubscriptions!", s.name),
+                        label: FieldDescriptorProto_Label::LABEL_REQUIRED,
+                    },
+                })
+                .collect(),
+        }
+    }
+
     pub fn synthetize_query(&self) -> ObjectType {
         ObjectType {
             name: "Query".to_string(),
@@ -95,6 +115,8 @@ impl GqlTypeDefs {
 
         let query = self.synthetize_query();
         write!(out, "const {} = `\n{}\n`\n\n", query.name, query)?;
+        let subscription = self.synthetize_subscription();
+        write!(out, "const {} = `\n{}\n`\n\n", subscription.name, subscription)?;
 
         // write!(out, "const typeDefsWithoutQuery = [\n")?;
         // for export in all_exports.iter() {
@@ -146,10 +168,10 @@ impl GqlTypeDefs {
 
         for service in self.services.iter() {
             write!(out, "    {}: () => ({{\n", service.name.to_mixed_case())?;
-            for method in service.methods.iter() {
+            for method in service.methods.iter().filter(|m| !m.has_server_streaming()) {
                 write!(
                     out,
-                    "      {}: ({{ {}, req }}) => {{
+                    "      {}: ({{ {}: req }}) => {{
         return new Promise((resolve, reject) => {}Stub.{}({{...req}}, (err, res) => err ? reject(err) : resolve(res)))
       }},\n",
                     method.get_name().to_mixed_case(),
@@ -159,6 +181,36 @@ impl GqlTypeDefs {
                 )?;
             }
             write!(out, "    }}),\n")?;
+        }
+
+        write!(out, "  }},\n")?;
+        write!(out, "  Subscription: {{\n")?;
+
+        for service in self.services.iter() {
+            let subscriptions: Vec<_> = service.methods.iter().filter(|m| m.has_server_streaming()).collect();
+            if subscriptions.is_empty() {
+                continue
+            }
+
+            write!(out, "    {}: () => ({{", service.name.to_mixed_case())?;
+
+            for subscription in subscriptions {
+                write!(
+                    out,
+                    "
+        {}: (parent, {{ {}: req }}, {{ pubsub }}) => {{
+          const call = {}Stub.{}({{...req}})
+          // taken from the graphql-yoga example
+          // https://github.com/graphcool/graphql-yoga/blob/master/examples/subscriptions/index.jss
+          const channel = Math.random().toString(36).substring(2, 15) // random channel name
+          call.on('data', data => pubsub.publish(channel, data))
+          call.on('end', () => true)
+          call.on('status', () => true)
+          return pubsub.asyncIterator(channel)
+        }},", subscription.get_name().to_mixed_case(), subscription.get_input_type().to_snake_case(), service.name, subscription.get_name())?;
+            }
+
+            write!(out, "\n    }}),\n")?;
         }
 
         write!(out, "  }},\n}}")?;
